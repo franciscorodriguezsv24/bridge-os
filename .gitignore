@@ -1,0 +1,17 @@
+# Node
+node_modules/
+package-lock.json
+
+# Bridge OS runtime (específico del proyecto, no del repo)
+config.yml
+.bridge-os/state.json
+design-export/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
