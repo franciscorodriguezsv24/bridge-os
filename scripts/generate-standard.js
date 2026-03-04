@@ -233,19 +233,20 @@ function buildStandard({ tokens, components, exportPath }) {
   lines.push(``);
   lines.push(`| File | When to use |`);
   lines.push(`|------|-------------|`);
-  lines.push(`| \`design-export/one-shot-prompt.md\` | Full implementation in one session |`);
-  lines.push(`| \`design-export/section-prompt.md\` | Implement section by section |`);
-  lines.push(`| \`design-export/user-flows.md\` | Understand navigation and screen states |`);
-  lines.push(`| \`design-export/test-specs.md\` | Define test cases |`);
-  lines.push(`| \`design-export/product-requirements.md\` | Product context and requirements |`);
+  lines.push(`| \`design-export/prompts/one-shot-prompt.md\` | Full implementation in one session |`);
+  lines.push(`| \`design-export/prompts/section-prompt.md\` | Implement section by section |`);
+  lines.push(`| \`design-export/shell/\` | App shell and navigation components |`);
+  lines.push(`| \`design-export/sections/\` | Section components with test specs |`);
+  lines.push(`| \`design-export/product-overview.md\` | Product context and requirements |`);
   lines.push(``);
 
   return lines.join("\n");
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-const tokensDir     = path.join(exportPath, "design-tokens");
-const componentsDir = path.join(exportPath, "components");
+// Design OS real structure: design-system/ has tokens, sections/ has components
+const tokensDir     = path.join(exportPath, "design-system");
+const componentsDir = path.join(exportPath, "sections");
 
 const tokens     = parseTokens(tokensDir);
 const components = parseComponents(componentsDir);
