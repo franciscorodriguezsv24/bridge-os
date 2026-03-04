@@ -1,0 +1,183 @@
+#!/bin/bash
+# =============================================================================
+# Bridge OS — project.sh
+# Installs Bridge OS into the current project.
+# Usage: ~/.bridge-os/setup/project.sh
+# =============================================================================
+
+set -e
+
+# ── Colors ────────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+BRIDGE_OS_HOME="$HOME/.bridge-os"
+PROJECT_DIR="$(pwd)"
+
+echo ""
+echo -e "${BOLD}🌉 Bridge OS — Project Installation${RESET}"
+echo -e "─────────────────────────────────────"
+echo ""
+echo -e "  Project: ${CYAN}$PROJECT_DIR${RESET}"
+echo ""
+
+# ── Check global installation ─────────────────────────────────────────────────
+if [ ! -d "$BRIDGE_OS_HOME" ]; then
+  echo -e "${RED}✗ Bridge OS is not installed globally.${RESET}"
+  echo -e "  Run the global installer first:"
+  echo -e "  ${CYAN}curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash${RESET}"
+  exit 1
+fi
+
+# ── Check for Design OS and Agent OS ─────────────────────────────────────────
+echo -e "${CYAN}→ Checking for Design OS and Agent OS...${RESET}"
+
+# Agent OS
+if [ -d "$PROJECT_DIR/agent-os" ]; then
+  echo -e "  ${GREEN}✓${RESET} Agent OS found at ./agent-os"
+else
+  echo -e "  ${YELLOW}⚠${RESET} Agent OS not found at ./agent-os"
+  echo -e "    Bridge OS will still install, but sync won't work until Agent OS is set up."
+fi
+
+# Design OS (check common locations)
+DESIGN_OS_FOUND=false
+for candidate in "../*design*" "../*design-os*"; do
+  for dir in $candidate; do
+    if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+      DESIGN_OS_FOUND=true
+      DESIGN_OS_SUGGESTED="$dir"
+      break 2
+    fi
+  done
+done
+
+if [ "$DESIGN_OS_FOUND" = true ]; then
+  echo -e "  ${GREEN}✓${RESET} Design OS found at $DESIGN_OS_SUGGESTED"
+else
+  echo -e "  ${YELLOW}⚠${RESET} Design OS not found nearby."
+  echo -e "    You'll need to set the path manually in .bridge-os/config.yml"
+fi
+
+echo ""
+
+# ── Create .bridge-os/ folder in project ─────────────────────────────────────
+echo -e "${CYAN}→ Creating .bridge-os/ in project...${RESET}"
+mkdir -p "$PROJECT_DIR/.bridge-os"
+
+# Copy scripts
+cp "$BRIDGE_OS_HOME/scripts/sync.sh" "$PROJECT_DIR/.bridge-os/sync.sh"
+cp "$BRIDGE_OS_HOME/scripts/generate-standard.js" "$PROJECT_DIR/.bridge-os/generate-standard.js"
+chmod +x "$PROJECT_DIR/.bridge-os/sync.sh"
+echo -e "  ${GREEN}✓${RESET} sync.sh and generate-standard.js copied"
+
+# ── Write config.yml ──────────────────────────────────────────────────────────
+CONFIG="$PROJECT_DIR/.bridge-os/config.yml"
+
+if [ -f "$CONFIG" ]; then
+  echo -e "  ${YELLOW}⚠${RESET} config.yml already exists — skipping to preserve your settings"
+else
+  SUGGESTED_PATH="${DESIGN_OS_SUGGESTED:-../my-project-design}"
+  cat > "$CONFIG" <<EOF
+# Bridge OS — Project Configuration
+# Adjust paths to match your local setup.
+
+design_os:
+  path: "$SUGGESTED_PATH"     # path to your Design OS repo
+  export_dir: "export"         # export folder inside Design OS
+
+agent_os:
+  path: "./"                   # this project (current directory)
+  standards_dir: "agent-os/standards/global"
+  product_dir: "agent-os/product"
+
+bridge:
+  export_dest: "design-export" # where Bridge copies the Design OS export
+  enforce_phase_lock: true     # blocks sync if Design OS export is missing
+EOF
+  echo -e "  ${GREEN}✓${RESET} config.yml created"
+fi
+
+# ── Write state.json ──────────────────────────────────────────────────────────
+STATE="$PROJECT_DIR/.bridge-os/state.json"
+if [ ! -f "$STATE" ]; then
+  cat > "$STATE" <<EOF
+{
+  "phase": "design",
+  "last_sync": null,
+  "export_hash": null,
+  "section": null,
+  "tokens_only": false
+}
+EOF
+  echo -e "  ${GREEN}✓${RESET} state.json initialized (phase: design)"
+fi
+
+echo ""
+
+# ── Install Claude Code commands ──────────────────────────────────────────────
+echo -e "${CYAN}→ Installing Claude Code commands...${RESET}"
+mkdir -p "$PROJECT_DIR/.claude/commands"
+
+for cmd in bridge-status bridge-sync; do
+  SRC="$BRIDGE_OS_HOME/commands/${cmd}.md"
+  DEST="$PROJECT_DIR/.claude/commands/${cmd}.md"
+  if [ -f "$SRC" ]; then
+    cp "$SRC" "$DEST"
+    echo -e "  ${GREEN}✓${RESET} /${cmd} installed"
+  else
+    echo -e "  ${YELLOW}⚠${RESET} ${cmd}.md not found in Bridge OS — skipping"
+  fi
+done
+
+echo ""
+
+# ── Update CLAUDE.md ──────────────────────────────────────────────────────────
+echo -e "${CYAN}→ Updating CLAUDE.md...${RESET}"
+CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"
+BRIDGE_SECTION_MARKER="## 🌉 Bridge OS"
+
+if [ -f "$CLAUDE_MD" ] && grep -q "$BRIDGE_SECTION_MARKER" "$CLAUDE_MD"; then
+  echo -e "  ${YELLOW}⚠${RESET} Bridge OS section already in CLAUDE.md — skipping"
+else
+  TEMPLATE="$BRIDGE_OS_HOME/templates/claude-md-section.md.tpl"
+  if [ -f "$TEMPLATE" ]; then
+    echo "" >> "$CLAUDE_MD"
+    cat "$TEMPLATE" >> "$CLAUDE_MD"
+    echo -e "  ${GREEN}✓${RESET} Bridge OS section appended to CLAUDE.md"
+  else
+    echo -e "  ${YELLOW}⚠${RESET} Template not found — add Bridge OS section to CLAUDE.md manually"
+  fi
+fi
+
+echo ""
+
+# ── Update .gitignore ─────────────────────────────────────────────────────────
+echo -e "${CYAN}→ Updating .gitignore...${RESET}"
+GITIGNORE="$PROJECT_DIR/.gitignore"
+ENTRIES=("design-export/" ".bridge-os/state.json" ".bridge-os/config.yml")
+
+for entry in "${ENTRIES[@]}"; do
+  if [ -f "$GITIGNORE" ] && grep -qF "$entry" "$GITIGNORE"; then
+    echo -e "  ${GREEN}✓${RESET} $entry already in .gitignore"
+  else
+    echo "$entry" >> "$GITIGNORE"
+    echo -e "  ${GREEN}✓${RESET} $entry added to .gitignore"
+  fi
+done
+
+echo ""
+
+# ── Done ──────────────────────────────────────────────────────────────────────
+echo -e "${GREEN}${BOLD}✅ Bridge OS installed in this project${RESET}"
+echo ""
+echo -e "${BOLD}Next steps:${RESET}"
+echo -e "  ${CYAN}1.${RESET} Review and adjust ${BOLD}.bridge-os/config.yml${RESET} (set your Design OS path)"
+echo -e "  ${CYAN}2.${RESET} Complete your design in Design OS and run ${BOLD}/export-product${RESET}"
+echo -e "  ${CYAN}3.${RESET} Run ${BOLD}.bridge-os/sync.sh${RESET} to connect both tools"
+echo -e "  ${CYAN}4.${RESET} Run ${BOLD}/bridge-status${RESET} in Claude Code to verify"
+echo ""
