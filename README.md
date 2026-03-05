@@ -1,4 +1,8 @@
 # Bridge OS
+![Version](https://img.shields.io/badge/version-0.1.1-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Works with Design OS](https://img.shields.io/badge/works%20with-Design%20OS-purple)
+![Works with Agent OS](https://img.shields.io/badge/works%20with-Agent%20OS-orange)
 
 > The missing connection between Design OS and Agent OS.
 
