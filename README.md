@@ -1,58 +1,64 @@
 # Bridge OS
-![Version](https://img.shields.io/badge/version-0.1.1-blue)
+
+![Version](https://img.shields.io/badge/version-0.1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Works with Design OS](https://img.shields.io/badge/works%20with-Design%20OS-purple)
 ![Works with Agent OS](https://img.shields.io/badge/works%20with-Agent%20OS-orange)
 
 > The missing connection between Design OS and Agent OS.
 
-Bridge OS is a lightweight protocol that connects the [Design OS](https://github.com/buildermethods/design-os) export with [Agent OS](https://github.com/buildermethods/agent-os) standards — ensuring the design phase is always completed before implementation begins.
-
-It does not replace either tool. It makes them work together.
+Bridge OS is the single entry point for AI-first product development. It installs and connects [Design OS](https://github.com/buildermethods/design-os) and [Agent OS](https://github.com/buildermethods/agent-os) — ensuring the design phase always happens before implementation begins.
 
 ---
 
-## What it does
+## Why Bridge OS
 
-Design OS produces a complete handoff package — components, tokens, user flows, and prompts. Agent OS consumes standards to align the agent before building. The problem: neither tool knows the other exists.
+Design OS produces a complete handoff package — components, tokens, user flows, and prompts. Agent OS consumes standards to align the agent before building. The problem: neither tool knows the other exists, and every new project requires installing and wiring both manually.
 
 Bridge OS fills that gap:
 
-1. Verifies the Design OS export is complete before anything else can happen
-2. Translates the export into a `design-system.md` standard that Agent OS reads automatically
-3. Enforces the **Design → Bridge → Agent** order through three layers: a phase lock in the sync script, a `/bridge-status` command for Claude Code, and a `CLAUDE.md` section that keeps the agent aligned
+- **One entry point** — a single `curl` installs Bridge OS, which then sets up everything else
+- **Enforced order** — a phase lock prevents Agent OS from running without a completed Design OS export
+- **Automatic translation** — the Design OS export becomes a `design-system.md` standard that Agent OS reads automatically
+- **Full design guidance** — `/bridge-design` walks you through the entire design phase, detecting where you left off
 
 ---
 
 ## How it works
 
 ```
-Design OS  ──────►  Bridge OS  ──────►  Agent OS
-(design)            (connect)           (build)
+curl ... | bash          ← install Bridge OS globally (once)
+       ↓
+/bridge-init             ← install Design OS + Agent OS + configure project
+       ↓
+/bridge-design           ← guided design phase (vision → sections → export)
+       ↓
+/bridge-sync             ← connect export to Agent OS standards
+       ↓
+/inject-standards        ← Agent OS loaded with full design context
+       ↓
+/shape-spec              ← build with confidence
 ```
 
+### What happens during sync
+
 ```
-/export-product          .bridge-os/sync.sh        /inject-standards
-     │                          │                         │
-     │  generates               │  copies export          │  loads
-     │  export/                 │  generates              │  design-system.md
-     ▼                          │  design-system.md       ▼
-design-os/export/          ─────┘                  agent-os/standards/
-  components/                                        global/
-  design-tokens/                                       design-system.md
-  user-flows.md
-  product-requirements.md
+bridge-design/product-plan/        agent-os/standards/global/
+  design-system/                →    design-system.md  (tokens + components + rules)
+  sections/                     →
+  shell/                        →
+  product-overview.md           →  agent-os/product/design-requirements.md
 ```
 
 ---
 
 ## Requirements
 
-- [Design OS](https://github.com/buildermethods/design-os) — installed and with at least one `/export-product` completed
-- [Agent OS](https://github.com/buildermethods/agent-os) — installed globally and initialized in your project
 - Node.js v18+
 - Git
-- [`yq`](https://github.com/mikefarah/yq) _(optional but recommended for config parsing)_
+- [`yq`](https://github.com/mikefarah/yq) _(optional but recommended)_
+
+Design OS and Agent OS are installed automatically by `/bridge-init`.
 
 ---
 
@@ -64,70 +70,75 @@ design-os/export/          ─────┘                  agent-os/standard
 curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash
 ```
 
-This creates `~/.bridge-os/` on your system.
+### 2. Initialize your project
 
-### 2. Install Bridge OS in your project
-
-Navigate to your implementation project (where Agent OS is installed) and run:
+Navigate to your project folder and run:
 
 ```bash
 ~/.bridge-os/setup/project.sh
 ```
 
-This will:
+### 3. Open Claude Code and run
 
-- Create `.bridge-os/` with `sync.sh`, `generate-standard.js`, and `config.yml`
-- Install `/bridge-status` and `/bridge-sync` commands into `.claude/commands/`
-- Append the Bridge OS section to your `CLAUDE.md`
-- Update `.gitignore` to exclude runtime files
-
-### 3. Configure paths
-
-Open `.bridge-os/config.yml` and verify the path to your Design OS repo:
-
-```yaml
-design_os:
-  path: "../my-project-design"  # adjust this to your Design OS repo
-  export_dir: "export"
-
-agent_os:
-  path: "./"
-  standards_dir: "agent-os/standards/global"
-  product_dir: "agent-os/product"
-
-bridge:
-  export_dest: "design-export"
-  enforce_phase_lock: true
+```bash
+claude
 ```
+
+```
+/bridge-init
+```
+
+That's it. Bridge OS handles the rest.
+
+---
+
+## Commands
+
+| Command | Phase | What it does |
+|---------|-------|-------------|
+| `/bridge-init` | Setup | Installs Design OS, Agent OS, and configures Bridge OS in the project |
+| `/bridge-design` | Design | Guides the full design phase — detects progress and continues from where you left off |
+| `/bridge-sync` | Bridge | Connects the Design OS export to Agent OS standards |
+| `/bridge-status` | Any | Shows current phase and verifies all checks |
 
 ---
 
 ## Usage
 
-### The full flow
-
-**Phase 1 — Design** _(in your Design OS repo)_
+### Starting a new project
 
 ```bash
-/product-vision
-/shape-section    # repeat for each section
-/export-product   # generates the handoff package
+# 1. Create your project (e.g. Next.js)
+npx create-next-app@latest my-project --typescript --tailwind --app
+cd my-project
+
+# 2. Install Bridge OS globally (once)
+curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash
+
+# 3. Initialize Bridge OS in the project
+~/.bridge-os/setup/project.sh
+
+# 4. Open Claude Code
+claude
+
+# 5. Run the Bridge OS flow
+/bridge-init      # installs Design OS + Agent OS
+/bridge-design    # complete your design (vision → sections → export)
+/bridge-sync      # connect design to Agent OS
 ```
 
-**Phase 2 — Bridge** _(in your implementation project)_
+### Continuing an existing design
+
+If you've already run `/export-product` in Design OS:
 
 ```bash
 .bridge-os/sync.sh
 ```
 
-Bridge OS will verify the export, copy it, generate `design-system.md` for Agent OS, and update the project state to `agent`.
+Or from inside Claude Code:
 
-**Phase 3 — Agent** _(in your implementation project)_
-
-```bash
-/bridge-status      # verify everything is ready
-/inject-standards   # load design context into Agent OS
-/shape-spec         # plan your first spec with full design context
+```
+/bridge-sync
 ```
 
 ### Partial syncs
@@ -143,31 +154,47 @@ Bridge OS will verify the export, copy it, generate `design-system.md` for Agent
 .bridge-os/sync.sh --dry-run
 ```
 
-### Claude Code commands
+### Updating scripts after a Bridge OS release
 
-| Command | What it does |
-|---------|-------------|
-| `/bridge-status` | Shows current phase and all checks |
-| `/bridge-sync` | Runs the sync from inside Claude Code |
+```bash
+cd ~/.bridge-os && git pull origin main
+cd your-project
+~/.bridge-os/setup/project.sh --update
+```
 
 ---
 
 ## Project structure
 
-After installation, your project will have:
+After setup, your project will look like this:
 
 ```
 your-project/
-├── .bridge-os/
-│   ├── config.yml            # your local config (git-ignored)
-│   ├── state.json            # current phase and sync state (git-ignored)
-│   ├── sync.sh               # main sync script
-│   └── generate-standard.js  # generates design-system.md
+├── bridge-design/              ← Design OS repo (git-ignored)
+│   └── product-plan/           ← generated by /export-product
+│       ├── design-system/      ← tokens.css, tailwind-colors.css, fonts.md
+│       ├── sections/           ← section components
+│       ├── shell/              ← app shell and navigation
+│       ├── prompts/            ← one-shot-prompt.md, section-prompt.md
+│       └── product-overview.md
+├── agent-os/                   ← Agent OS
+│   ├── standards/global/
+│   │   └── design-system.md   ← generated by Bridge OS sync
+│   └── product/
+│       └── design-requirements.md
+├── design-export/              ← copy of Design OS export (git-ignored)
+├── .bridge-os/                 ← Bridge OS config and scripts
+│   ├── config.yml              ← local config (git-ignored)
+│   ├── state.json              ← current phase (git-ignored)
+│   ├── sync.sh
+│   └── generate-standard.js
 ├── .claude/
 │   └── commands/
-│       ├── bridge-status.md  # /bridge-status command
-│       └── bridge-sync.md    # /bridge-sync command
-└── design-export/            # copy of Design OS export (git-ignored)
+│       ├── bridge-init.md
+│       ├── bridge-design.md
+│       ├── bridge-status.md
+│       └── bridge-sync.md
+└── src/                        ← your app code
 ```
 
 ---
@@ -179,13 +206,19 @@ your-project/
 - Does not generate application code
 - Does not replace `/export-product` or `/inject-standards`
 
-It only moves the right output from one tool to the right input of the other.
+It installs, connects, and enforces order between the two tools — nothing more.
 
 ---
 
 ## Contributing
 
 Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ---
 
