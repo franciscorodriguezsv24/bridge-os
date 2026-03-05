@@ -11,10 +11,11 @@ is ready to move into the Agent OS implementation phase.
 
    **Design OS**
    - [ ] `design-export/` folder exists in the project
-   - [ ] `design-export/design-tokens/` exists
-   - [ ] `design-export/components/` exists and has at least one subfolder
-   - [ ] `design-export/product-requirements.md` exists
-   - [ ] `design-export/user-flows.md` exists
+   - [ ] `design-export/design-system/` exists (colors, tokens, fonts)
+   - [ ] `design-export/sections/` exists and has at least one subfolder
+   - [ ] `design-export/shell/` exists
+   - [ ] `design-export/prompts/` exists
+   - [ ] `design-export/product-overview.md` exists
 
    **Bridge OS**
    - [ ] `.bridge-os/config.yml` exists and has valid paths
@@ -25,7 +26,7 @@ is ready to move into the Agent OS implementation phase.
    - [ ] `agent-os/standards/global/design-system.md` exists
    - [ ] `agent-os/product/design-requirements.md` exists
 
-3. Compare the md5 hash of `design-export/product-requirements.md`
+3. Compare the md5 hash of `design-export/product-overview.md`
    with the `export_hash` stored in `state.json`. If they differ,
    mark export as stale.
 
@@ -44,10 +45,11 @@ is ready to move into the Agent OS implementation phase.
 | Area | Check | Status |
 |------|-------|--------|
 | Design OS | design-export/ present | ✅ / ❌ |
-| Design OS | design-tokens present | ✅ / ❌ |
-| Design OS | components present | ✅ / ❌ |
-| Design OS | product-requirements.md present | ✅ / ❌ |
-| Design OS | user-flows.md present | ✅ / ❌ |
+| Design OS | design-system/ present | ✅ / ❌ |
+| Design OS | sections/ present | ✅ / ❌ |
+| Design OS | shell/ present | ✅ / ❌ |
+| Design OS | prompts/ present | ✅ / ❌ |
+| Design OS | product-overview.md present | ✅ / ❌ |
 | Bridge OS | config.yml valid | ✅ / ❌ |
 | Bridge OS | phase is agent | ✅ / ❌ |
 | Agent OS | design-system.md present | ✅ / ❌ |
