@@ -52,32 +52,30 @@ function listDirs(dirPath) {
 }
 
 // ── 1. Read Design Tokens ─────────────────────────────────────────────────────
+// Design OS exports tokens as CSS files, not JSON:
+//   design-system/tokens.css        — CSS custom properties
+//   design-system/tailwind-colors.css — color tokens
+//   design-system/fonts.md          — typography info
+
 function parseTokens(tokensDir) {
   if (!fs.existsSync(tokensDir)) return null;
 
-  const colors     = readJSON(path.join(tokensDir, "colors.json"));
-  const typography = readJSON(path.join(tokensDir, "typography.json"));
-  const spacing    = readJSON(path.join(tokensDir, "spacing.json"));
+  const tokensCss  = readFile(path.join(tokensDir, "tokens.css"));
+  const colorsCss  = readFile(path.join(tokensDir, "tailwind-colors.css"));
+  const fontsMd    = readFile(path.join(tokensDir, "fonts.md"));
 
-  return { colors, typography, spacing };
+  return { tokensCss, colorsCss, fontsMd };
 }
 
-// Flatten nested token object into rows: { token, value, description }
-function flattenTokens(obj, prefix = "") {
+// Parse CSS custom properties from a CSS string
+// Looks for lines like: --color-primary: #6366F1;
+function parseCSSTokens(css) {
   const rows = [];
-  if (!obj || typeof obj !== "object") return rows;
-
-  for (const [key, val] of Object.entries(obj)) {
-    const tokenName = prefix ? `${prefix}-${key}` : key;
-    if (val && typeof val === "object" && "value" in val) {
-      rows.push({
-        token: `--${tokenName}`,
-        value: val.value,
-        description: val.description || ""
-      });
-    } else if (val && typeof val === "object") {
-      rows.push(...flattenTokens(val, tokenName));
-    }
+  if (!css) return rows;
+  const regex = /(--[\w-]+)\s*:\s*([^;]+);/g;
+  let match;
+  while ((match = regex.exec(css)) !== null) {
+    rows.push({ token: match[1].trim(), value: match[2].trim() });
   }
   return rows;
 }
@@ -156,42 +154,40 @@ function buildStandard({ tokens, components, exportPath }) {
   lines.push(`## Design Tokens`);
   lines.push(``);
 
-  if (tokens?.colors) {
+  const allTokens    = parseCSSTokens(tokens?.tokensCss);
+  const colorTokens  = parseCSSTokens(tokens?.colorsCss);
+
+  if (colorTokens.length > 0) {
     lines.push(`### Colors`);
     lines.push(``);
-    lines.push(`| Token | Value | Description |`);
-    lines.push(`|-------|-------|-------------|`);
-    for (const row of flattenTokens(tokens.colors, "color")) {
-      lines.push(`| \`${row.token}\` | \`${row.value}\` | ${row.description} |`);
+    lines.push(`| Token | Value |`);
+    lines.push(`|-------|-------|`);
+    for (const row of colorTokens) {
+      lines.push(`| \`${row.token}\` | \`${row.value}\` |`);
     }
     lines.push(``);
   }
 
-  if (tokens?.typography) {
+  if (allTokens.length > 0) {
+    lines.push(`### Tokens`);
+    lines.push(``);
+    lines.push(`| Token | Value |`);
+    lines.push(`|-------|-------|`);
+    for (const row of allTokens) {
+      lines.push(`| \`${row.token}\` | \`${row.value}\` |`);
+    }
+    lines.push(``);
+  }
+
+  if (tokens?.fontsMd) {
     lines.push(`### Typography`);
     lines.push(``);
-    lines.push(`| Token | Value |`);
-    lines.push(`|-------|-------|`);
-    for (const row of flattenTokens(tokens.typography, "font")) {
-      lines.push(`| \`${row.token}\` | \`${row.value}\` |`);
-    }
+    lines.push(tokens.fontsMd.trim());
     lines.push(``);
   }
 
-  if (tokens?.spacing) {
-    lines.push(`### Spacing`);
-    lines.push(``);
-    lines.push(`| Token | Value |`);
-    lines.push(`|-------|-------|`);
-    for (const row of flattenTokens(tokens.spacing, "spacing")) {
-      lines.push(`| \`${row.token}\` | \`${row.value}\` |`);
-    }
-    lines.push(``);
-  }
-
-  if (!tokens?.colors && !tokens?.typography && !tokens?.spacing) {
-    lines.push(`_No token files found in \`design-export/design-tokens/\`._`);
-    lines.push(`_Run \`/export-product\` in Design OS to generate them._`);
+  if (!colorTokens.length && !allTokens.length && !tokens?.fontsMd) {
+    lines.push(`_No token files found in \`design-export/design-system/\`._`);
     lines.push(``);
   }
 
@@ -257,7 +253,6 @@ const outputDir = path.dirname(outputPath);
 if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
 fs.writeFileSync(outputPath, standard, "utf8");
 
-console.log(`   ✓ design-system.md written (${components.length} components, tokens: ${
-  [tokens?.colors && "colors", tokens?.typography && "typography", tokens?.spacing && "spacing"]
-    .filter(Boolean).join(", ") || "none"
-})`);
+const colorCount = parseCSSTokens(tokens?.colorsCss).length;
+const tokenCount = parseCSSTokens(tokens?.tokensCss).length;
+console.log(`   ✓ design-system.md written (${components.length} components, ${colorCount} colors, ${tokenCount} tokens)`);
