@@ -137,7 +137,7 @@ echo ""
 echo -e "${CYAN}→ Installing Claude Code commands...${RESET}"
 mkdir -p "$PROJECT_DIR/.claude/commands"
 
-for cmd in bridge-status bridge-sync; do
+for cmd in bridge-init bridge-design bridge-status bridge-sync; do
   SRC="$BRIDGE_OS_HOME/commands/${cmd}.md"
   DEST="$PROJECT_DIR/.claude/commands/${cmd}.md"
   if [ -f "$SRC" ]; then
@@ -190,8 +190,8 @@ echo ""
 echo -e "${GREEN}${BOLD}✅ Bridge OS installed in this project${RESET}"
 echo ""
 echo -e "${BOLD}Next steps:${RESET}"
-echo -e "  ${CYAN}1.${RESET} Review and adjust ${BOLD}.bridge-os/config.yml${RESET} (set your Design OS path)"
-echo -e "  ${CYAN}2.${RESET} Complete your design in Design OS and run ${BOLD}/export-product${RESET}"
-echo -e "  ${CYAN}3.${RESET} Run ${BOLD}.bridge-os/sync.sh${RESET} to connect both tools"
-echo -e "  ${CYAN}4.${RESET} Run ${BOLD}/bridge-status${RESET} in Claude Code to verify"
+echo -e "  ${CYAN}1.${RESET} Open Claude Code: ${BOLD}claude${RESET}"
+echo -e "  ${CYAN}2.${RESET} Run ${BOLD}/bridge-init${RESET} to install Design OS and Agent OS"
+echo -e "  ${CYAN}3.${RESET} Run ${BOLD}/bridge-design${RESET} to start the design phase"
+echo -e "  ${CYAN}4.${RESET} Run ${BOLD}/bridge-sync${RESET} to connect design with Agent OS"
 echo ""

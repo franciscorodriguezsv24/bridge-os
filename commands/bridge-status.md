@@ -58,13 +58,13 @@ is ready to move into the Agent OS implementation phase.
 ### Next Step
 
 - If **any Design OS check is ❌** →
-  "Run `/export-product` in Design OS, then run `.bridge-os/sync.sh`"
+  "Run `/bridge-design` to complete the design phase"
 
 - If **any Bridge OS check is ❌** →
-  "Run `.bridge-os/sync.sh` to connect Design OS with Agent OS"
+  "Run `/bridge-sync` to connect Design OS with Agent OS"
 
 - If **export is stale ⚠️** →
-  "Design OS has changed since last sync. Run `.bridge-os/sync.sh` to update."
+  "Design OS has changed since last sync. Run `/bridge-sync` to update."
 
 - If **all checks are ✅** →
   "Ready. Run `/inject-standards` then `/shape-spec` in Agent OS."

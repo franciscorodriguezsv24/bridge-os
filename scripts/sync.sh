@@ -80,9 +80,8 @@ if [ ! -d "$EXPORT_PATH" ]; then
 fi
 
 # ── Verify required export files ─────────────────────────────────────────────
-# Structure produced by Design OS /export-product:
-# product-plan/design-system/ product-plan/sections/ product-plan/shell/
-# product-plan/prompts/ product-plan/product-overview.md
+# Real structure produced by Design OS /export-product (product-plan/):
+#   design-system/  sections/  shell/  prompts/  product-overview.md
 REQUIRED=("design-system" "sections" "shell" "prompts" "product-overview.md")
 MISSING=()
 
