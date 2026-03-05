@@ -67,50 +67,82 @@ function parseTokens(tokensDir) {
   return { tokensCss, colorsCss, fontsMd };
 }
 
-// Parse CSS custom properties from a CSS string
-// Looks for lines like: --color-primary: #6366F1;
+// Parse CSS custom properties AND Tailwind color classes
+// Handles both:
+//   --color-primary: #6366F1;          (CSS custom properties)
+//   'primary': '#6366F1',              (Tailwind config JS/CSS)
 function parseCSSTokens(css) {
   const rows = [];
   if (!css) return rows;
-  const regex = /(--[\w-]+)\s*:\s*([^;]+);/g;
+
+  // CSS custom properties: --token-name: value;
+  const cssRegex = /(--[\w-]+)\s*:\s*([^;}{]+);/g;
   let match;
-  while ((match = regex.exec(css)) !== null) {
+  while ((match = cssRegex.exec(css)) !== null) {
     rows.push({ token: match[1].trim(), value: match[2].trim() });
   }
+
+  // Tailwind color map: 'key': 'value' or "key": "value"
+  if (rows.length === 0) {
+    const twRegex = /['"]?([\w-]+)['"]?\s*:\s*['"]([^'"]+)['"]/g;
+    while ((match = twRegex.exec(css)) !== null) {
+      const key = match[1].trim();
+      const val = match[2].trim();
+      // Skip non-color-looking values and JS keywords
+      if (val.startsWith('#') || val.startsWith('rgb') || val.startsWith('hsl')) {
+        rows.push({ token: `--color-${key}`, value: val });
+      }
+    }
+  }
+
   return rows;
 }
 
-// ── 2. Read Components ────────────────────────────────────────────────────────
-function parseComponents(componentsDir) {
+// ── 2. Read Components from sections/ and shell/ ──────────────────────────────
+function parseComponents(exportPath) {
   const components = [];
-  const dirs = listDirs(componentsDir);
 
-  for (const name of dirs) {
-    const compDir  = path.join(componentsDir, name);
-    const specPath = path.join(compDir, "spec.md");
-    const spec     = readFile(specPath);
+  // Design OS puts sections in sections/ and shell in shell/
+  const sources = [
+    { dir: path.join(exportPath, "sections"), type: "section" },
+    { dir: path.join(exportPath, "shell"),    type: "shell"   }
+  ];
 
-    // Extract variants from spec if present (looks for a Variants section)
-    const variantsMatch = spec.match(/##\s*Variants[\s\S]*?\n([\s\S]*?)(?=\n##|$)/i);
-    const variants = variantsMatch
-      ? variantsMatch[1]
-          .split("\n")
-          .map(l => l.replace(/^\|?\s*`?([^|`]+)`?\s*\|?.*/, "$1").trim())
-          .filter(l => l && !l.startsWith("-") && !l.startsWith("Variant"))
-          .slice(0, 6)
-      : [];
+  for (const { dir, type } of sources) {
+    const dirs = listDirs(dir);
+    for (const name of dirs) {
+      const compDir  = path.join(dir, name);
+      // Design OS may have spec.md or README.md per section
+      const spec     = readFile(path.join(compDir, "spec.md")) ||
+                       readFile(path.join(compDir, "README.md"));
 
-    // Extract props similarly
-    const propsMatch = spec.match(/##\s*Props[\s\S]*?\n([\s\S]*?)(?=\n##|$)/i);
-    const props = propsMatch
-      ? propsMatch[1]
-          .split("\n")
-          .map(l => l.replace(/^\|?\s*`?([^|`\s]+)`?.*/, "$1").trim())
-          .filter(l => l && !l.startsWith("-") && !l.startsWith("Prop") && l.length > 1)
-          .slice(0, 8)
-      : [];
+      const variantsMatch = spec.match(/##\s*Variants[\s\S]*?\n([\s\S]*?)(?=\n##|$)/i);
+      const variants = variantsMatch
+        ? variantsMatch[1]
+            .split("\n")
+            .map(l => l.replace(/^\|?\s*`?([^|`]+)`?\s*\|?.*/, "$1").trim())
+            .filter(l => l && !l.startsWith("-") && !l.startsWith("Variant"))
+            .slice(0, 6)
+        : [];
 
-    components.push({ name, variants, props, hasSpec: !!spec });
+      const propsMatch = spec.match(/##\s*Props[\s\S]*?\n([\s\S]*?)(?=\n##|$)/i);
+      const props = propsMatch
+        ? propsMatch[1]
+            .split("\n")
+            .map(l => l.replace(/^\|?\s*`?([^|`\s]+)`?.*/, "$1").trim())
+            .filter(l => l && !l.startsWith("-") && !l.startsWith("Prop") && l.length > 1)
+            .slice(0, 8)
+        : [];
+
+      components.push({
+        name,
+        type,
+        path: `design-export/${type === "shell" ? "shell" : "sections"}/${name}/`,
+        variants,
+        props,
+        hasSpec: !!spec
+      });
+    }
   }
 
   return components;
@@ -202,12 +234,12 @@ function buildStandard({ tokens, components, exportPath }) {
   lines.push(``);
 
   if (components.length === 0) {
-    lines.push(`_No components found in \`design-export/components/\`._`);
+    lines.push(`_No components found in \`design-export/sections/\` or \`design-export/shell/\`._`);
   } else {
     for (const comp of components) {
-      lines.push(`### ${comp.name}`);
+      lines.push(`### ${comp.name} ${comp.type === "shell" ? "_(shell)_" : ""}`);
       lines.push(``);
-      lines.push(`- **Path:** \`design-export/components/${comp.name}/\``);
+      lines.push(`- **Path:** \`${comp.path}\``);
       if (comp.variants.length > 0) {
         lines.push(`- **Variants:** ${comp.variants.map(v => `\`${v}\``).join(" | ")}`);
       }
@@ -215,7 +247,7 @@ function buildStandard({ tokens, components, exportPath }) {
         lines.push(`- **Key props:** ${comp.props.map(p => `\`${p}\``).join(", ")}`);
       }
       if (comp.hasSpec) {
-        lines.push(`- **Spec:** \`design-export/components/${comp.name}/spec.md\``);
+        lines.push(`- **Spec:** \`${comp.path}spec.md\``);
       }
       lines.push(``);
     }
@@ -240,12 +272,9 @@ function buildStandard({ tokens, components, exportPath }) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-// Design OS real structure: design-system/ has tokens, sections/ has components
-const tokensDir     = path.join(exportPath, "design-system");
-const componentsDir = path.join(exportPath, "sections");
-
+const tokensDir  = path.join(exportPath, "design-system");
 const tokens     = parseTokens(tokensDir);
-const components = parseComponents(componentsDir);
+const components = parseComponents(exportPath);
 const standard   = buildStandard({ tokens, components, exportPath });
 
 // Write output

@@ -65,11 +65,23 @@ fi
 
 echo ""
 
+# ── Detect --update flag ──────────────────────────────────────────────────────
+UPDATE_MODE=false
+for arg in "$@"; do
+  [ "$arg" = "--update" ] && UPDATE_MODE=true
+done
+
+if [ "$UPDATE_MODE" = true ]; then
+  echo -e "${CYAN}→ Update mode — refreshing scripts and commands only...${RESET}"
+  echo -e "  ${YELLOW}config.yml and state.json will not be touched${RESET}"
+  echo ""
+fi
+
 # ── Create .bridge-os/ folder in project ─────────────────────────────────────
 echo -e "${CYAN}→ Creating .bridge-os/ in project...${RESET}"
 mkdir -p "$PROJECT_DIR/.bridge-os"
 
-# Copy scripts
+# Copy scripts (always overwrite in update mode)
 cp "$BRIDGE_OS_HOME/scripts/sync.sh" "$PROJECT_DIR/.bridge-os/sync.sh"
 cp "$BRIDGE_OS_HOME/scripts/generate-standard.js" "$PROJECT_DIR/.bridge-os/generate-standard.js"
 chmod +x "$PROJECT_DIR/.bridge-os/sync.sh"
@@ -78,7 +90,9 @@ echo -e "  ${GREEN}✓${RESET} sync.sh and generate-standard.js copied"
 # ── Write config.yml ──────────────────────────────────────────────────────────
 CONFIG="$PROJECT_DIR/.bridge-os/config.yml"
 
-if [ -f "$CONFIG" ]; then
+if [ "$UPDATE_MODE" = true ]; then
+  echo -e "  ${YELLOW}⚠${RESET} Skipping config.yml (update mode)"
+elif [ -f "$CONFIG" ]; then
   echo -e "  ${YELLOW}⚠${RESET} config.yml already exists — skipping to preserve your settings"
 else
   SUGGESTED_PATH="${DESIGN_OS_SUGGESTED:-../my-project-design}"
