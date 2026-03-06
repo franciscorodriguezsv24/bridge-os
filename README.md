@@ -35,7 +35,7 @@ curl ... | bash          ← install Bridge OS globally (once)
        ↓
 /bridge-sync             ← connect export to Agent OS standards
        ↓
-/inject-standards        ← Agent OS loaded with full design context
+/bridge-build            ← inject standards + shape specs per section
        ↓
 /shape-spec              ← build with confidence
 ```
@@ -80,7 +80,7 @@ This sets up `~/.bridge-os/` on your system. You only need to do this once.
 npx create-next-app@latest my-project --typescript --tailwind --app --src-dir
 cd my-project
 
-# Initialize Bridge OS in the project
+# Bootstrap Bridge OS commands (required once to make /bridge-init available)
 ~/.bridge-os/setup/project.sh
 
 # Open Claude Code
@@ -93,7 +93,7 @@ claude
 /bridge-init
 ```
 
-This single command installs Design OS, Agent OS, and wires everything together.
+This installs Design OS, Agent OS, and wires everything together.
 You never need to install or configure either tool manually.
 
 ---
@@ -105,6 +105,7 @@ You never need to install or configure either tool manually.
 | `/bridge-init` | Setup | Installs Design OS + Agent OS + configures the project in one step |
 | `/bridge-design` | Design | Guides the full design phase — detects progress and continues from where you left off |
 | `/bridge-sync` | Bridge | Connects the Design OS export to Agent OS standards |
+| `/bridge-build` | Build | Injects standards and shapes a spec for each roadmap section |
 | `/bridge-status` | Any | Shows current phase and verifies all checks |
 
 All Bridge OS and Agent OS commands are installed automatically into
@@ -120,7 +121,7 @@ All Bridge OS and Agent OS commands are installed automatically into
 /bridge-init      ← installs Design OS + Agent OS
 /bridge-design    ← vision → sections → export (guided)
 /bridge-sync      ← connects export to Agent OS
-/inject-standards ← Agent OS loaded with full design context
+/bridge-build     ← injects standards + shapes specs per section
 /shape-spec       ← start building
 ```
 
@@ -184,6 +185,7 @@ your-project/
 │   └── commands/
 │       ├── bridge-init.md
 │       ├── bridge-design.md
+│       ├── bridge-build.md
 │       ├── bridge-status.md
 │       └── bridge-sync.md
 └── src/                        ← your app code
@@ -192,6 +194,18 @@ your-project/
 ---
 
 ## Troubleshooting
+
+### `bash: line 1: 404:: command not found` when installing Agent OS
+
+The Agent OS install script URL changed in v3. Use the correct URL:
+
+```bash
+curl -sSL "https://raw.githubusercontent.com/buildermethods/agent-os/main/scripts/base-install.sh" | bash
+```
+
+Note: Agent OS v3 installs to `~/agent-os/` (no dot), not `~/.agent-os/`.
+
+---
 
 ### `permission denied: ~/.bridge-os/setup/project.sh`
 

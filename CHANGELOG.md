@@ -5,6 +5,33 @@ Format based on [Keep a Changelog](https://keepachangelog.com).
 
 ---
 
+## [0.1.3] - 2026-03-06
+
+### Added
+- `commands/bridge-build.md` — new `/bridge-build` command: orchestrates inject-standards + shape-spec per roadmap section
+- `setup/project.sh`: installs all 5 commands (added `bridge-build`)
+- `setup/install.sh`: lists `/bridge-build` in available commands
+
+### Fixed
+- `setup/project.sh`: `export_dir` default changed from `"export"` to `"product-plan"` (matches Design OS output)
+- `setup/project.sh`: Agent OS commands path updated from `~/.agent-os/commands` to `~/agent-os/commands/agent-os` (v3 path)
+- `setup/project.sh`: Design OS detection now checks `./bridge-design` inside project first
+- `setup/project.sh`: template path fixed from `templates/` (plural) to `template/` (singular)
+- `setup/project.sh`: `bridge-design/` added to `.gitignore` entries
+- `scripts/sync.sh`: `product-requirements.md` replaced with `product-overview.md` (cp, hash, dry-run)
+- `scripts/sync.sh`: section sync uses `sections/` instead of `components/`
+- `scripts/sync.sh`: `--section` flag parsing rewritten with proper `while/shift` loop
+- `commands/bridge-init.md`: Agent OS setup path updated to `~/agent-os/scripts/project-install.sh`
+- `commands/bridge-init.md`: verification step checks for `bridge-build.md`
+- `commands/bridge-status.md`: "all checks pass" now recommends `/bridge-build`
+- `commands/bridge-sync.md`: next step points to `/bridge-build`
+- `template/claude-md-section.md.tpl`: all file paths corrected to match real export structure
+
+### Changed
+- Full command flow is now: `/bridge-init` → `/bridge-design` → `/bridge-sync` → `/bridge-build` → `/shape-spec`
+
+---
+
 ## [0.1.2] - 2026-03-05
 
 ### Added
@@ -44,7 +71,3 @@ Format based on [Keep a Changelog](https://keepachangelog.com).
 - `CLAUDE.md` section template with Bridge OS rules
 - `state.json` phase tracking
 - Support for `--dry-run`, `--tokens-only`, and `--section` flags in `sync.sh`
-# Changelog
-
-All notable changes to Bridge OS will be documented here.
-Format based on [Keep a Changelog](https://keepachangelog.com).
