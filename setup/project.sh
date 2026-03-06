@@ -134,7 +134,7 @@ fi
 echo ""
 
 # ── Install Claude Code commands ──────────────────────────────────────────────
-echo -e "${CYAN}→ Installing Claude Code commands...${RESET}"
+echo -e "${CYAN}→ Installing Bridge OS Claude Code commands...${RESET}"
 mkdir -p "$PROJECT_DIR/.claude/commands"
 
 for cmd in bridge-init bridge-design bridge-status bridge-sync; do
@@ -147,6 +147,25 @@ for cmd in bridge-init bridge-design bridge-status bridge-sync; do
     echo -e "  ${YELLOW}⚠${RESET} ${cmd}.md not found in Bridge OS — skipping"
   fi
 done
+
+echo ""
+
+# ── Install Agent OS Claude Code commands ─────────────────────────────────────
+echo -e "${CYAN}→ Installing Agent OS Claude Code commands...${RESET}"
+
+AGENT_OS_COMMANDS="$HOME/.agent-os/commands"
+
+if [ ! -d "$AGENT_OS_COMMANDS" ]; then
+  echo -e "  ${YELLOW}⚠${RESET} Agent OS commands not found at $AGENT_OS_COMMANDS"
+  echo -e "    Run /bridge-init to install Agent OS first, then re-run this script."
+else
+  for cmd_file in "$AGENT_OS_COMMANDS"/*.md; do
+    [ -f "$cmd_file" ] || continue
+    cmd_name=$(basename "$cmd_file")
+    cp "$cmd_file" "$PROJECT_DIR/.claude/commands/$cmd_name"
+    echo -e "  ${GREEN}✓${RESET} ${cmd_name} installed"
+  done
+fi
 
 echo ""
 

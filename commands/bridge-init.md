@@ -54,6 +54,9 @@ This is the first command to run in any new project.
    - If yes → run update mode: `~/.bridge-os/setup/project.sh --update`
    - If no → run: `~/.bridge-os/setup/project.sh`
 
+   The project install script will automatically copy both Bridge OS
+   and Agent OS commands into `.claude/commands/`.
+
 6. Verify everything installed correctly:
    - `./bridge-design/` exists with `package.json`
    - `./agent-os/` exists with `standards/`
