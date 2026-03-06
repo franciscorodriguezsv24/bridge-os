@@ -44,9 +44,9 @@ else
   echo -e "    Bridge OS will still install, but sync won't work until Agent OS is set up."
 fi
 
-# Design OS (check common locations)
+# Design OS (check project dir first, then parent)
 DESIGN_OS_FOUND=false
-for candidate in "../*design*" "../*design-os*"; do
+for candidate in "./bridge-design" "./*design*" "../*design*" "../*design-os*"; do
   for dir in $candidate; do
     if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
       DESIGN_OS_FOUND=true
@@ -102,7 +102,7 @@ else
 
 design_os:
   path: "$SUGGESTED_PATH"     # path to your Design OS repo
-  export_dir: "export"         # export folder inside Design OS
+  export_dir: "product-plan"    # export folder inside Design OS
 
 agent_os:
   path: "./"                   # this project (current directory)
@@ -137,7 +137,7 @@ echo ""
 echo -e "${CYAN}→ Installing Bridge OS Claude Code commands...${RESET}"
 mkdir -p "$PROJECT_DIR/.claude/commands"
 
-for cmd in bridge-init bridge-design bridge-status bridge-sync; do
+for cmd in bridge-init bridge-design bridge-build bridge-status bridge-sync; do
   SRC="$BRIDGE_OS_HOME/commands/${cmd}.md"
   DEST="$PROJECT_DIR/.claude/commands/${cmd}.md"
   if [ -f "$SRC" ]; then
@@ -153,7 +153,7 @@ echo ""
 # ── Install Agent OS Claude Code commands ─────────────────────────────────────
 echo -e "${CYAN}→ Installing Agent OS Claude Code commands...${RESET}"
 
-AGENT_OS_COMMANDS="$HOME/.agent-os/commands"
+AGENT_OS_COMMANDS="$HOME/agent-os/commands/agent-os"
 
 if [ ! -d "$AGENT_OS_COMMANDS" ]; then
   echo -e "  ${YELLOW}⚠${RESET} Agent OS commands not found at $AGENT_OS_COMMANDS"
@@ -177,7 +177,7 @@ BRIDGE_SECTION_MARKER="## 🌉 Bridge OS"
 if [ -f "$CLAUDE_MD" ] && grep -q "$BRIDGE_SECTION_MARKER" "$CLAUDE_MD"; then
   echo -e "  ${YELLOW}⚠${RESET} Bridge OS section already in CLAUDE.md — skipping"
 else
-  TEMPLATE="$BRIDGE_OS_HOME/templates/claude-md-section.md.tpl"
+  TEMPLATE="$BRIDGE_OS_HOME/template/claude-md-section.md.tpl"
   if [ -f "$TEMPLATE" ]; then
     echo "" >> "$CLAUDE_MD"
     cat "$TEMPLATE" >> "$CLAUDE_MD"
@@ -192,7 +192,7 @@ echo ""
 # ── Update .gitignore ─────────────────────────────────────────────────────────
 echo -e "${CYAN}→ Updating .gitignore...${RESET}"
 GITIGNORE="$PROJECT_DIR/.gitignore"
-ENTRIES=("design-export/" ".bridge-os/state.json" ".bridge-os/config.yml")
+ENTRIES=("bridge-design/" "design-export/" ".bridge-os/state.json" ".bridge-os/config.yml")
 
 for entry in "${ENTRIES[@]}"; do
   if [ -f "$GITIGNORE" ] && grep -qF "$entry" "$GITIGNORE"; then
@@ -213,4 +213,5 @@ echo -e "  ${CYAN}1.${RESET} Open Claude Code: ${BOLD}claude${RESET}"
 echo -e "  ${CYAN}2.${RESET} Run ${BOLD}/bridge-init${RESET} to install Design OS and Agent OS"
 echo -e "  ${CYAN}3.${RESET} Run ${BOLD}/bridge-design${RESET} to start the design phase"
 echo -e "  ${CYAN}4.${RESET} Run ${BOLD}/bridge-sync${RESET} to connect design with Agent OS"
+echo -e "  ${CYAN}5.${RESET} Run ${BOLD}/bridge-build${RESET} to inject standards and shape specs"
 echo ""

@@ -20,13 +20,13 @@ DRY_RUN=false
 TOKENS_ONLY=false
 SECTION=""
 
-for arg in "$@"; do
-  case $arg in
-    --dry-run)      DRY_RUN=true ;;
-    --tokens-only)  TOKENS_ONLY=true ;;
-    --section)      SECTION="$2"; shift ;;
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --dry-run)      DRY_RUN=true; shift ;;
+    --tokens-only)  TOKENS_ONLY=true; shift ;;
+    --section)      SECTION="$2"; shift 2 ;;
+    *)              shift ;;
   esac
-  shift 2>/dev/null || true
 done
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -112,7 +112,8 @@ if [ "$TOKENS_ONLY" = false ]; then
   if [ "$DRY_RUN" = false ]; then
     mkdir -p "./$EXPORT_DEST"
     if [ -n "$SECTION" ]; then
-      cp -r "$EXPORT_PATH/components/$SECTION" "./$EXPORT_DEST/components/$SECTION" 2>/dev/null || true
+      mkdir -p "./$EXPORT_DEST/sections"
+      cp -r "$EXPORT_PATH/sections/$SECTION" "./$EXPORT_DEST/sections/$SECTION"
       echo -e "   ${GREEN}✓${RESET} Section '$SECTION' copied"
     else
       cp -r "$EXPORT_PATH/." "./$EXPORT_DEST/"
@@ -140,18 +141,18 @@ if [ "$TOKENS_ONLY" = false ]; then
   echo -e "${CYAN}→ Syncing product requirements...${RESET}"
   if [ "$DRY_RUN" = false ]; then
     mkdir -p "$PRODUCT_DIR"
-    cp "./$EXPORT_DEST/product-requirements.md" "$PRODUCT_DIR/design-requirements.md"
+    cp "./$EXPORT_DEST/product-overview.md" "$PRODUCT_DIR/design-requirements.md"
     echo -e "   ${GREEN}✓${RESET} $PRODUCT_DIR/design-requirements.md updated"
   else
-    echo -e "   [dry-run] Would copy product-requirements.md → $PRODUCT_DIR/design-requirements.md"
+    echo -e "   [dry-run] Would copy product-overview.md → $PRODUCT_DIR/design-requirements.md"
   fi
 fi
 
 # 4. Update bridge state
 if [ "$DRY_RUN" = false ]; then
   TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-  HASH=$(md5sum "./$EXPORT_DEST/product-requirements.md" 2>/dev/null | awk '{print $1}' \
-      || md5 -q "./$EXPORT_DEST/product-requirements.md" 2>/dev/null || echo "n/a")
+  HASH=$(md5sum "./$EXPORT_DEST/product-overview.md" 2>/dev/null | awk '{print $1}' \
+      || md5 -q "./$EXPORT_DEST/product-overview.md" 2>/dev/null || echo "n/a")
 
   cat > "$STATE" <<EOF
 {
@@ -169,5 +170,5 @@ echo ""
 echo -e "${GREEN}${BOLD}✅ Bridge sync complete${RESET}"
 echo ""
 echo -e "   Phase: ${GREEN}AGENT OS enabled${RESET}"
-echo -e "   Next:  Run ${BOLD}/bridge-status${RESET} then ${BOLD}/inject-standards${RESET} in Agent OS"
+echo -e "   Next:  Run ${BOLD}/bridge-build${RESET} to inject standards and shape specs"
 echo ""

@@ -25,9 +25,9 @@ This is the first command to run in any new project.
      Then stop.
 
    **Agent OS:**
-   - Check `~/.agent-os/` exists
+   - Check `~/agent-os/` exists (v3 installs here, not `~/.agent-os/`)
    - If not → run in terminal:
-     `curl -sSL https://raw.githubusercontent.com/buildermethods/agent-os/main/setup/base.sh | bash`
+     `curl -sSL "https://raw.githubusercontent.com/buildermethods/agent-os/main/scripts/base-install.sh" | bash`
    - Confirm it completed successfully
 
 3. Install Design OS inside the project:
@@ -46,7 +46,7 @@ This is the first command to run in any new project.
    Check if `./agent-os/` already exists.
    - If yes → skip
    - If no → run:
-     `~/.agent-os/setup/project.sh`
+     `~/agent-os/scripts/project-install.sh`
 
 5. Install Bridge OS in the project:
 
@@ -61,6 +61,7 @@ This is the first command to run in any new project.
    - `./bridge-design/` exists with `package.json`
    - `./agent-os/` exists with `standards/`
    - `./.bridge-os/config.yml` exists
+   - `./.claude/commands/bridge-build.md` exists
    - `./.claude/commands/bridge-status.md` exists
    - `./.claude/commands/bridge-design.md` exists
    - `./.claude/commands/bridge-sync.md` exists

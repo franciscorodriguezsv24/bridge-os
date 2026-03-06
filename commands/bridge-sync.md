@@ -33,9 +33,8 @@ Design OS export to Agent OS standards and product context.
    to confirm all checks are ✅.
 
 6. If all checks pass, tell the user:
-   "Bridge sync complete. Run `/inject-standards` to load the
-   design context into Agent OS, then use `/shape-spec` to start
-   planning your first spec."
+   "Bridge sync complete. Run `/bridge-build` to inject standards
+   and shape specs for every section in your roadmap."
 
 ## On failure
 
@@ -51,7 +50,7 @@ If `sync.sh` exits with an error:
 
 - **config.yml missing** →
   "Bridge OS is not initialized in this project.
-  Run `~/.bridge-os/setup/project.sh` to set it up."
+  Run `/bridge-init` to set everything up."
 
 - **Node.js error in generate-standard.js** →
   Show the error output and suggest running

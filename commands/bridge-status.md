@@ -67,7 +67,7 @@ is ready to move into the Agent OS implementation phase.
   "Design OS has changed since last sync. Run `/bridge-sync` to update."
 
 - If **all checks are ✅** →
-  "Ready. Run `/inject-standards` then `/shape-spec` in Agent OS."
+  "Ready. Run `/bridge-build` to inject standards and shape specs."
 
 ---
 

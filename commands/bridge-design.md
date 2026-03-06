@@ -1,95 +1,219 @@
 # Bridge Design
 
-Start or continue the Design OS process from Bridge OS.
-This command guides the user through the full design phase —
-from product vision to export — before handing off to Agent OS.
+Guide the user through the complete Design OS process in the correct order.
+Every step must be completed before moving to the next.
+This command runs inside the `bridge-design/` folder context.
 
-## When to use
+## Important
 
-- After `/bridge-init` to start the design phase
-- To continue a design that was paused mid-process
-- To redesign a section and re-export before re-syncing
+All Design OS commands (`/product-vision`, `/product-roadmap`, etc.) must be
+run from inside the `bridge-design/` directory with its own Claude Code session.
+
+Bridge OS cannot run Design OS commands directly — it guides the user to run
+them in the correct order and verifies completion before proceeding.
+
+---
 
 ## Steps
 
-1. Check `.bridge-os/state.json`:
-   - If phase is `agent` → warn the user:
-     "A sync already exists. Running /bridge-design will start a new design
-     cycle. After /export-product you'll need to re-run /bridge-sync.
-     Continue?"
-     If no → stop.
+### 1. Verify Design OS is installed
 
-2. Check if Design OS is installed:
-   - If `./bridge-design/` does not exist → tell the user:
-     "Design OS is not installed. Run `/bridge-init` first."
-     Then stop.
+Check that `./bridge-design/` exists and has `package.json`.
+- If not → tell the user: "Design OS is not installed. Run `/bridge-init` first."
+- Stop.
 
-3. Check if Design OS dev server is running:
-   - If not running → instruct the user to open a new terminal and run:
-     ```
-     cd bridge-design
-     npm run dev
-     ```
-   - Tell them: "Open http://localhost:3000 to view Design OS while we work."
+### 2. Check dev server
 
-4. Check current design progress by reading files in `./bridge-design/product/`:
+Tell the user:
+"Open a new terminal tab and run:
+```
+cd bridge-design
+npm run dev
+```
+Then open http://localhost:3000 to follow along visually."
 
-   **If `product/vision.md` does not exist:**
-   → Phase: NOT STARTED
-   → Tell user: "Starting from the beginning."
-   → Run `/product-vision` instructions inline
+Ask: "Is the dev server running?" — wait for confirmation before continuing.
 
-   **If `product/vision.md` exists but no sections in `product/sections/`:**
-   → Phase: VISION COMPLETE
-   → Tell user: "Product vision found. Continuing with section design."
-   → Run `/shape-section` instructions inline
+### 3. Detect current progress
 
-   **If sections exist but no `product-plan/` folder:**
-   → Phase: SECTIONS COMPLETE
-   → Tell user: "Sections designed. Ready to export."
-   → Run `/export-product` instructions inline
+Read the following files to determine which steps are done:
 
-   **If `product-plan/` already exists:**
-   → Phase: EXPORT COMPLETE
-   → Tell user: "Design export found. You're ready to sync."
-   → Skip to step 6
+| File | Step it confirms |
+|------|-----------------|
+| `bridge-design/product/overview.md` | /product-vision ✅ |
+| `bridge-design/product/roadmap.md` | /product-roadmap ✅ |
+| `bridge-design/product/data-shape/data-shape.md` | /data-shape ✅ |
+| `bridge-design/product/design-system/design-tokens.md` | /design-tokens ✅ |
+| `bridge-design/src/shell/` (has files) | /design-shell ✅ |
+| `bridge-design/product/sections/` (has subfolders) | /shape-section ✅ |
+| `bridge-design/product-plan/` (exists) | /export-product ✅ |
 
-5. After each Design OS command completes, ask:
-   - "Do you want to add another section, or are you ready to export?"
-   - If another section → repeat `/shape-section`
-   - If ready → run `/export-product`
+Show the user a progress table:
 
-6. Once `/export-product` is complete, verify:
-   - `./bridge-design/product-plan/design-system/` exists
-   - `./bridge-design/product-plan/sections/` exists
-   - `./bridge-design/product-plan/product-overview.md` exists
+---
 
-7. Update `.bridge-os/state.json` phase to `bridge`:
-   ```json
-   { "phase": "bridge" }
-   ```
+## 🎨 Design OS Progress
 
-8. Report result:
+| Step | Command | Status |
+|------|---------|--------|
+| Product Vision | `/product-vision` | ✅ / ⏳ |
+| Product Roadmap | `/product-roadmap` | ✅ / ⏳ |
+| Data Shape | `/data-shape` | ✅ / ⏳ |
+| Design Tokens | `/design-tokens` | ✅ / ⏳ |
+| App Shell | `/design-shell` | ✅ / ⏳ |
+| Section Design | `/shape-section` | ✅ / ⏳ |
+| Export | `/export-product` | ✅ / ⏳ |
+
+---
+
+### 4. Execute missing steps in order
+
+For each step that is ⏳, guide the user to run it.
+**Do not skip any step. Do not proceed to the next until the current one is complete.**
+
+---
+
+#### Step 1 — Product Vision
+If `bridge-design/product/overview.md` does not exist:
+
+Tell the user:
+"Open a new Claude Code session in the `bridge-design/` folder and run:
+```
+/product-vision
+```
+This defines what you're building, your target users, and core features.
+Come back here when it's done."
+
+Ask: "Did `/product-vision` complete successfully?" — wait for confirmation.
+Then verify `bridge-design/product/overview.md` exists before continuing.
+
+---
+
+#### Step 2 — Product Roadmap
+If `bridge-design/product/roadmap.md` does not exist:
+
+Tell the user:
+"In the same `bridge-design/` Claude Code session, run:
+```
+/product-roadmap
+```
+This breaks your product into sections (e.g. dashboard, settings, profile).
+Each section will become a designed area of your app."
+
+Ask: "Did `/product-roadmap` complete successfully?" — wait for confirmation.
+Verify `bridge-design/product/roadmap.md` exists before continuing.
+
+---
+
+#### Step 3 — Data Shape
+If `bridge-design/product/data-shape/data-shape.md` does not exist:
+
+Tell the user:
+"Run in `bridge-design/`:
+```
+/data-shape
+```
+This defines the core data entities your app works with."
+
+Ask: "Did `/data-shape` complete?" — wait for confirmation.
+
+---
+
+#### Step 4 — Design Tokens
+If `bridge-design/product/design-system/design-tokens.md` does not exist:
+
+Tell the user:
+"Run in `bridge-design/`:
+```
+/design-tokens
+```
+This sets your colors, typography, and spacing.
+You'll see a live preview at http://localhost:3000."
+
+Ask: "Did `/design-tokens` complete?" — wait for confirmation.
+Verify the file exists before continuing.
+
+---
+
+#### Step 5 — App Shell
+If `bridge-design/src/shell/` is empty or does not exist:
+
+Tell the user:
+"Run in `bridge-design/`:
+```
+/design-shell
+```
+This designs your app's navigation and layout — the wrapper around all sections."
+
+Ask: "Did `/design-shell` complete?" — wait for confirmation.
+
+---
+
+#### Step 6 — Section Design
+If `bridge-design/product/sections/` has no subfolders:
+
+Read `bridge-design/product/roadmap.md` to get the list of sections.
+Tell the user:
+"Now design each section from your roadmap. Run for each one:
+```
+/shape-section
+```
+Sections to design: [list from roadmap.md]
+Run `/shape-section` once per section. Come back after each one."
+
+Ask after each: "Which section did you just design? Are there more sections to design?"
+Repeat until all sections from the roadmap are done.
+
+---
+
+#### Step 7 — Export
+If `bridge-design/product-plan/` does not exist:
+
+Tell the user:
+"All sections are designed. Now generate the full handoff package:
+```
+/export-product
+```
+This creates `product-plan/` with everything Bridge OS needs to sync."
+
+Ask: "Did `/export-product` complete?" — wait for confirmation.
+Verify `bridge-design/product-plan/design-system/` and
+`bridge-design/product-plan/sections/` exist before continuing.
+
+---
+
+### 5. All steps complete
+
+Once all 7 steps are ✅, update `.bridge-os/state.json`:
+```json
+{ "phase": "bridge" }
+```
+
+Report:
 
 ---
 
 ## 🎨 Design Phase Complete
 
-**Export location:** `./bridge-design/product-plan/`
+All Design OS steps completed successfully.
 
-| File | Status |
+| Step | Status |
 |------|--------|
-| `design-system/` | ✅ |
-| `sections/` | ✅ |
-| `shell/` | ✅ |
-| `product-overview.md` | ✅ |
+| Product Vision | ✅ |
+| Product Roadmap | ✅ |
+| Data Shape | ✅ |
+| Design Tokens | ✅ |
+| App Shell | ✅ |
+| Section Design | ✅ |
+| Export | ✅ |
 
-**Current phase:** `BRIDGE`
+**Export location:** `./bridge-design/product-plan/`
 
 **Next step:**
 Run `/bridge-sync` to connect the design with Agent OS.
 
 ---
 
-9. Do not run `/bridge-sync` automatically.
-   Wait for the user to explicitly run it.
+### 6. Do not run `/bridge-sync` automatically.
+
+Wait for the user to explicitly run it.

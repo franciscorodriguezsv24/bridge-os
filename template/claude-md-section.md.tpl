@@ -14,17 +14,16 @@ Design is the source of truth. The agent builds what the design defines.
 | I need to know... | Where to look |
 |-------------------|---------------|
 | Colors / spacing / typography | `agent-os/standards/global/design-system.md` |
-| Available components | `design-export/components/` |
-| Navigation and screen flows | `design-export/user-flows.md` |
+| Section designs and components | `design-export/sections/` |
+| App shell and navigation | `design-export/shell/` |
 | Product requirements | `agent-os/product/design-requirements.md` |
-| Full implementation prompt | `design-export/one-shot-prompt.md` |
-| Section implementation prompt | `design-export/section-prompt.md` |
-| Test cases | `design-export/test-specs.md` |
+| Product overview | `design-export/product-overview.md` |
+| Implementation prompts | `design-export/prompts/` |
 
 ### What the agent must never do
 
 - ❌ Hardcode color, spacing, or typography values
-- ❌ Recreate a component that already exists in `design-export/components/`
-- ❌ Ignore `design-export/user-flows.md` when implementing navigation
+- ❌ Recreate a component that already exists in `design-export/sections/`
+- ❌ Ignore `design-export/shell/` when implementing navigation
 - ❌ Start implementation if `/bridge-status` has any ❌ checks
 - ❌ Create a new component without a spec from Design OS
