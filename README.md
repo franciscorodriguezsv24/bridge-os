@@ -58,37 +58,43 @@ bridge-design/product-plan/        agent-os/standards/global/
 - Git
 - [`yq`](https://github.com/mikefarah/yq) _(optional but recommended)_
 
-Design OS and Agent OS are installed automatically by `/bridge-init`.
+> Design OS and Agent OS do not need to be installed manually.
+> `/bridge-init` handles everything automatically.
 
 ---
 
 ## Installation
 
-### 1. Install Bridge OS globally
+### 1. Install Bridge OS globally — one command, one time
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash
 ```
 
-### 2. Initialize your project
+This sets up `~/.bridge-os/` on your system. You only need to do this once.
 
-Navigate to your project folder and run:
+### 2. Set up your project
 
 ```bash
+# Create your project
+npx create-next-app@latest my-project --typescript --tailwind --app --src-dir
+cd my-project
+
+# Initialize Bridge OS in the project
 ~/.bridge-os/setup/project.sh
-```
 
-### 3. Open Claude Code and run
-
-```bash
+# Open Claude Code
 claude
 ```
+
+### 3. Let Bridge OS take it from here
 
 ```
 /bridge-init
 ```
 
-That's it. Bridge OS handles the rest.
+This single command installs Design OS, Agent OS, and wires everything together.
+You never need to install or configure either tool manually.
 
 ---
 
@@ -96,70 +102,56 @@ That's it. Bridge OS handles the rest.
 
 | Command | Phase | What it does |
 |---------|-------|-------------|
-| `/bridge-init` | Setup | Installs Design OS, Agent OS, and configures Bridge OS in the project |
+| `/bridge-init` | Setup | Installs Design OS + Agent OS + configures the project in one step |
 | `/bridge-design` | Design | Guides the full design phase — detects progress and continues from where you left off |
 | `/bridge-sync` | Bridge | Connects the Design OS export to Agent OS standards |
 | `/bridge-status` | Any | Shows current phase and verifies all checks |
+
+All Bridge OS and Agent OS commands are installed automatically into
+`.claude/commands/` during project setup.
 
 ---
 
 ## Usage
 
-### Starting a new project
+### Full flow — new project
 
-```bash
-# 1. Create your project (e.g. Next.js)
-npx create-next-app@latest my-project --typescript --tailwind --app
-cd my-project
-
-# 2. Install Bridge OS globally (once)
-curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash
-
-# 3. Initialize Bridge OS in the project
-~/.bridge-os/setup/project.sh
-
-# 4. Open Claude Code
-claude
-
-# 5. Run the Bridge OS flow
-/bridge-init      # installs Design OS + Agent OS
-/bridge-design    # complete your design (vision → sections → export)
-/bridge-sync      # connect design to Agent OS
+```
+/bridge-init      ← installs Design OS + Agent OS
+/bridge-design    ← vision → sections → export (guided)
+/bridge-sync      ← connects export to Agent OS
+/inject-standards ← Agent OS loaded with full design context
+/shape-spec       ← start building
 ```
 
-### Continuing an existing design
+### Re-syncing after a design change
 
-If you've already run `/export-product` in Design OS:
-
-```bash
-.bridge-os/sync.sh
-```
-
-Or from inside Claude Code:
+If you updated the design and ran `/export-product` again:
 
 ```
 /bridge-sync
 ```
 
+Or from the terminal:
+
+```bash
+.bridge-os/sync.sh
+```
+
 ### Partial syncs
 
 ```bash
-# Tokens changed only
-.bridge-os/sync.sh --tokens-only
-
-# One section was redesigned
-.bridge-os/sync.sh --section dashboard
-
-# Preview without writing files
-.bridge-os/sync.sh --dry-run
+.bridge-os/sync.sh --tokens-only      # only tokens changed
+.bridge-os/sync.sh --section dashboard # one section redesigned
+.bridge-os/sync.sh --dry-run           # preview without writing
 ```
 
-### Updating scripts after a Bridge OS release
+### Updating after a Bridge OS release
 
 ```bash
 cd ~/.bridge-os && git pull origin main
 cd your-project
-~/.bridge-os/setup/project.sh --update
+~/.bridge-os/setup/project.sh --update  # refreshes scripts + all commands
 ```
 
 ---
@@ -195,6 +187,77 @@ your-project/
 │       ├── bridge-status.md
 │       └── bridge-sync.md
 └── src/                        ← your app code
+```
+
+---
+
+## Troubleshooting
+
+### `permission denied: ~/.bridge-os/setup/project.sh`
+
+Git does not always preserve execute permissions when cloning.
+Fix it manually:
+
+```bash
+chmod +x ~/.bridge-os/setup/project.sh
+chmod +x ~/.bridge-os/setup/install.sh
+chmod +x ~/.bridge-os/scripts/sync.sh
+```
+
+Then re-run `~/.bridge-os/setup/project.sh`.
+
+To avoid this in the future, re-run the global installer which now
+sets permissions automatically:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash
+```
+
+---
+
+### `🚫 PHASE LOCK: Design OS export not found`
+
+Bridge OS cannot find the Design OS export. Check two things:
+
+1. Verify `export_dir` in `.bridge-os/config.yml` — it should be `product-plan` for current versions of Design OS
+2. Make sure you ran `/export-product` in Design OS before syncing
+
+```yaml
+design_os:
+  path: "./bridge-design"
+  export_dir: "product-plan"   # ← not "export"
+```
+
+---
+
+### `⚠ Incomplete export. Missing: ...`
+
+The export folder exists but is missing required files.
+Re-run `/export-product` in Design OS to regenerate the full package.
+
+---
+
+### `tokens: none` in sync output
+
+Bridge OS could not read the token files. Verify that
+`design-export/design-system/tokens.css` exists and is not empty.
+If Design OS generated a different file name, check `design-export/design-system/`
+and update `generate-standard.js` accordingly.
+
+---
+
+### `/bridge-status` shows old checks after update
+
+The Claude Code command file is cached. Copy the updated version:
+
+```bash
+cp ~/.bridge-os/commands/bridge-status.md .claude/commands/bridge-status.md
+```
+
+Or use the update flag to refresh all commands at once:
+
+```bash
+~/.bridge-os/setup/project.sh --update
 ```
 
 ---
