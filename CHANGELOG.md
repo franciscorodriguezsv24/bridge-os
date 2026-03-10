@@ -8,9 +8,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com).
 ## [0.1.4] - 2026-03-10
 
 ### Added
+- `commands/bridge-evolve.md` — new `/bridge-evolve` command: add sections, redesign, update tokens, or update data shape post-build
 - Single-session Design OS support: all Design OS commands now run from the project root
 - `bridge-init.md`: copies Design OS commands to `.claude/commands/design-os/` after clone
 - `setup/project.sh`: new section to install Design OS commands from `./bridge-design/`
+- `setup/project.sh`: installs all 6 commands (added `bridge-evolve`)
+- `setup/install.sh`: lists `/bridge-evolve` in available commands
+- `template/claude-md-section.md.tpl`: added `/bridge-evolve` guidance for post-build changes
 
 ### Changed
 - `bridge-design.md`: runs Design OS commands directly instead of requiring a separate session

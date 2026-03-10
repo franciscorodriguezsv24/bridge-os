@@ -84,6 +84,7 @@ echo -e "  ${CYAN}/bridge-init${RESET}    — Install Design OS + Agent OS + Bri
 echo -e "  ${CYAN}/bridge-design${RESET}  — Start or continue the design phase"
 echo -e "  ${CYAN}/bridge-sync${RESET}    — Connect design export to Agent OS"
 echo -e "  ${CYAN}/bridge-build${RESET}   — Inject standards and shape specs per section"
+echo -e "  ${CYAN}/bridge-evolve${RESET}  — Add sections, redesign, or update tokens post-build"
 echo -e "  ${CYAN}/bridge-status${RESET}  — Check current phase and all checks"
 echo ""
 echo -e "${BOLD}Next step:${RESET}"

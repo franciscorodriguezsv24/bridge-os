@@ -137,7 +137,7 @@ echo ""
 echo -e "${CYAN}→ Installing Bridge OS Claude Code commands...${RESET}"
 mkdir -p "$PROJECT_DIR/.claude/commands"
 
-for cmd in bridge-init bridge-design bridge-build bridge-status bridge-sync; do
+for cmd in bridge-init bridge-design bridge-build bridge-evolve bridge-status bridge-sync; do
   SRC="$BRIDGE_OS_HOME/commands/${cmd}.md"
   DEST="$PROJECT_DIR/.claude/commands/${cmd}.md"
   if [ -f "$SRC" ]; then

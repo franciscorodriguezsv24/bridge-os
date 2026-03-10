@@ -39,6 +39,8 @@ curl ... | bash          ← install Bridge OS globally (once)
 /bridge-build            ← inject standards + shape specs per section
        ↓
 /shape-spec              ← build with confidence
+       ↓
+/bridge-evolve           ← add sections, redesign, or update tokens
 ```
 
 ### What happens during sync
@@ -107,6 +109,7 @@ You never need to install or configure either tool manually.
 | `/bridge-design` | Design | Guides the full design phase — detects progress and continues from where you left off |
 | `/bridge-sync` | Bridge | Connects the Design OS export to Agent OS standards |
 | `/bridge-build` | Build | Injects standards and shapes a spec for each roadmap section |
+| `/bridge-evolve` | Evolve | Add sections, redesign, or update tokens after initial build |
 | `/bridge-status` | Any | Shows current phase and verifies all checks |
 
 All Bridge OS and Agent OS commands are installed automatically into
@@ -125,6 +128,14 @@ All Bridge OS and Agent OS commands are installed automatically into
 /bridge-build     ← injects standards + shapes specs per section
 /shape-spec       ← start building
 ```
+
+### Adding sections or updating the design post-build
+
+```
+/bridge-evolve    ← add sections, redesign, update tokens, or update data shape
+```
+
+This command handles the full cycle: design change → re-export → sync → new spec.
 
 ### Re-syncing after a design change
 
@@ -187,6 +198,7 @@ your-project/
 │       ├── bridge-init.md
 │       ├── bridge-design.md
 │       ├── bridge-build.md
+│       ├── bridge-evolve.md
 │       ├── bridge-status.md
 │       ├── bridge-sync.md
 │       └── design-os/          ← Design OS commands (copied by /bridge-init)

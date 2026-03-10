@@ -27,3 +27,8 @@ Design is the source of truth. The agent builds what the design defines.
 - ❌ Ignore `design-export/shell/` when implementing navigation
 - ❌ Start implementation if `/bridge-status` has any ❌ checks
 - ❌ Create a new component without a spec from Design OS
+
+### After the initial build
+
+To add new sections, redesign existing ones, or update the design system:
+Run `/bridge-evolve` — it handles the full design → sync → spec cycle.
