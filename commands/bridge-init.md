@@ -40,6 +40,11 @@ This is the first command to run in any new project.
      cd bridge-design && git remote remove origin && npm install && cd ..
      ```
    - Add `bridge-design/` to `.gitignore` if not already present
+   - Copy Design OS commands to the project:
+     ```
+     mkdir -p .claude/commands/design-os
+     cp -r ./bridge-design/.claude/commands/design-os/*.md .claude/commands/design-os/
+     ```
 
 4. Install Agent OS in the project:
 
@@ -54,8 +59,8 @@ This is the first command to run in any new project.
    - If yes → run update mode: `~/.bridge-os/setup/project.sh --update`
    - If no → run: `~/.bridge-os/setup/project.sh`
 
-   The project install script will automatically copy both Bridge OS
-   and Agent OS commands into `.claude/commands/`.
+   The project install script will automatically copy Bridge OS,
+   Agent OS, and Design OS commands into `.claude/commands/`.
 
 6. Verify everything installed correctly:
    - `./bridge-design/` exists with `package.json`
@@ -65,6 +70,8 @@ This is the first command to run in any new project.
    - `./.claude/commands/bridge-status.md` exists
    - `./.claude/commands/bridge-design.md` exists
    - `./.claude/commands/bridge-sync.md` exists
+   - `./.claude/commands/design-os/product-vision.md` exists
+   - `./.claude/commands/design-os/export-product.md` exists
 
 7. Report result:
 

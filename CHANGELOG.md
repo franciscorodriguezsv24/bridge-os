@@ -5,6 +5,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com).
 
 ---
 
+## [0.1.4] - 2026-03-10
+
+### Added
+- Single-session Design OS support: all Design OS commands now run from the project root
+- `bridge-init.md`: copies Design OS commands to `.claude/commands/design-os/` after clone
+- `setup/project.sh`: new section to install Design OS commands from `./bridge-design/`
+
+### Changed
+- `bridge-design.md`: runs Design OS commands directly instead of requiring a separate session
+- `bridge-init.md`: verification step checks for Design OS command files
+
+---
+
 ## [0.1.3] - 2026-03-06
 
 ### Added

@@ -169,6 +169,26 @@ fi
 
 echo ""
 
+# ── Install Design OS Claude Code commands ────────────────────────────────────
+echo -e "${CYAN}→ Installing Design OS Claude Code commands...${RESET}"
+
+DESIGN_OS_COMMANDS="$PROJECT_DIR/bridge-design/.claude/commands/design-os"
+
+if [ ! -d "$DESIGN_OS_COMMANDS" ]; then
+  echo -e "  ${YELLOW}⚠${RESET} Design OS commands not found at $DESIGN_OS_COMMANDS"
+  echo -e "    Run /bridge-init to install Design OS first, then re-run this script."
+else
+  mkdir -p "$PROJECT_DIR/.claude/commands/design-os"
+  for cmd_file in "$DESIGN_OS_COMMANDS"/*.md; do
+    [ -f "$cmd_file" ] || continue
+    cmd_name=$(basename "$cmd_file" .md)
+    cp "$cmd_file" "$PROJECT_DIR/.claude/commands/design-os/$(basename "$cmd_file")"
+    echo -e "  ${GREEN}✓${RESET} /${cmd_name} installed"
+  done
+fi
+
+echo ""
+
 # ── Update CLAUDE.md ──────────────────────────────────────────────────────────
 echo -e "${CYAN}→ Updating CLAUDE.md...${RESET}"
 CLAUDE_MD="$PROJECT_DIR/CLAUDE.md"

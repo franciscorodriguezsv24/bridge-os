@@ -2,15 +2,14 @@
 
 Guide the user through the complete Design OS process in the correct order.
 Every step must be completed before moving to the next.
-This command runs inside the `bridge-design/` folder context.
 
 ## Important
 
-All Design OS commands (`/product-vision`, `/product-roadmap`, etc.) must be
-run from inside the `bridge-design/` directory with its own Claude Code session.
+All Design OS commands (`/product-vision`, `/product-roadmap`, etc.) are
+installed in `.claude/commands/design-os/` and can be run directly from
+the project root. Bridge OS orchestrates them in the correct order.
 
-Bridge OS cannot run Design OS commands directly — it guides the user to run
-them in the correct order and verifies completion before proceeding.
+Design OS commands read from and write to the `bridge-design/` directory.
 
 ---
 
@@ -77,15 +76,12 @@ For each step that is ⏳, guide the user to run it.
 If `bridge-design/product/overview.md` does not exist:
 
 Tell the user:
-"Open a new Claude Code session in the `bridge-design/` folder and run:
-```
-/product-vision
-```
-This defines what you're building, your target users, and core features.
-Come back here when it's done."
+"Starting with product vision — this defines what you're building,
+your target users, and core features."
 
-Ask: "Did `/product-vision` complete successfully?" — wait for confirmation.
-Then verify `bridge-design/product/overview.md` exists before continuing.
+Run `/product-vision` directly.
+
+After it completes, verify `bridge-design/product/overview.md` exists before continuing.
 
 ---
 
@@ -93,14 +89,11 @@ Then verify `bridge-design/product/overview.md` exists before continuing.
 If `bridge-design/product/roadmap.md` does not exist:
 
 Tell the user:
-"In the same `bridge-design/` Claude Code session, run:
-```
-/product-roadmap
-```
-This breaks your product into sections (e.g. dashboard, settings, profile).
+"Now we'll break your product into sections (e.g. dashboard, settings, profile).
 Each section will become a designed area of your app."
 
-Ask: "Did `/product-roadmap` complete successfully?" — wait for confirmation.
+Run `/product-roadmap` directly.
+
 Verify `bridge-design/product/roadmap.md` exists before continuing.
 
 ---
@@ -109,13 +102,11 @@ Verify `bridge-design/product/roadmap.md` exists before continuing.
 If `bridge-design/product/data-shape/data-shape.md` does not exist:
 
 Tell the user:
-"Run in `bridge-design/`:
-```
-/data-shape
-```
-This defines the core data entities your app works with."
+"Now we'll define the core data entities your app works with."
 
-Ask: "Did `/data-shape` complete?" — wait for confirmation.
+Run `/data-shape` directly.
+
+Verify `bridge-design/product/data-shape/data-shape.md` exists before continuing.
 
 ---
 
@@ -123,15 +114,12 @@ Ask: "Did `/data-shape` complete?" — wait for confirmation.
 If `bridge-design/product/design-system/design-tokens.md` does not exist:
 
 Tell the user:
-"Run in `bridge-design/`:
-```
-/design-tokens
-```
-This sets your colors, typography, and spacing.
+"Now we'll set your colors, typography, and spacing.
 You'll see a live preview at http://localhost:3000."
 
-Ask: "Did `/design-tokens` complete?" — wait for confirmation.
-Verify the file exists before continuing.
+Run `/design-tokens` directly.
+
+Verify `bridge-design/product/design-system/design-tokens.md` exists before continuing.
 
 ---
 
@@ -139,13 +127,11 @@ Verify the file exists before continuing.
 If `bridge-design/src/shell/` is empty or does not exist:
 
 Tell the user:
-"Run in `bridge-design/`:
-```
-/design-shell
-```
-This designs your app's navigation and layout — the wrapper around all sections."
+"Now we'll design your app's navigation and layout — the wrapper around all sections."
 
-Ask: "Did `/design-shell` complete?" — wait for confirmation.
+Run `/design-shell` directly.
+
+Verify `bridge-design/src/shell/` has files before continuing.
 
 ---
 
@@ -154,14 +140,14 @@ If `bridge-design/product/sections/` has no subfolders:
 
 Read `bridge-design/product/roadmap.md` to get the list of sections.
 Tell the user:
-"Now design each section from your roadmap. Run for each one:
-```
-/shape-section
-```
+"Now we'll design each section from your roadmap.
 Sections to design: [list from roadmap.md]
-Run `/shape-section` once per section. Come back after each one."
+I'll run `/shape-section` for each one."
 
-Ask after each: "Which section did you just design? Are there more sections to design?"
+Run `/shape-section` for the first section.
+
+After each section completes, ask: "Ready for the next section ([name])?"
+Wait for confirmation, then run `/shape-section` for the next one.
 Repeat until all sections from the roadmap are done.
 
 ---
@@ -170,13 +156,10 @@ Repeat until all sections from the roadmap are done.
 If `bridge-design/product-plan/` does not exist:
 
 Tell the user:
-"All sections are designed. Now generate the full handoff package:
-```
-/export-product
-```
-This creates `product-plan/` with everything Bridge OS needs to sync."
+"All sections are designed. Now we'll generate the full handoff package."
 
-Ask: "Did `/export-product` complete?" — wait for confirmation.
+Run `/export-product` directly.
+
 Verify `bridge-design/product-plan/design-system/` and
 `bridge-design/product-plan/sections/` exist before continuing.
 

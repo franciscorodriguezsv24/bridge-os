@@ -18,6 +18,7 @@ Design OS produces a complete handoff package — components, tokens, user flows
 Bridge OS fills that gap:
 
 - **One entry point** — a single `curl` installs Bridge OS, which then sets up everything else
+- **Single session** — Design OS, Bridge OS, and Agent OS commands all run from one Claude Code session
 - **Enforced order** — a phase lock prevents Agent OS from running without a completed Design OS export
 - **Automatic translation** — the Design OS export becomes a `design-system.md` standard that Agent OS reads automatically
 - **Full design guidance** — `/bridge-design` walks you through the entire design phase, detecting where you left off
@@ -187,7 +188,15 @@ your-project/
 │       ├── bridge-design.md
 │       ├── bridge-build.md
 │       ├── bridge-status.md
-│       └── bridge-sync.md
+│       ├── bridge-sync.md
+│       └── design-os/          ← Design OS commands (copied by /bridge-init)
+│           ├── product-vision.md
+│           ├── product-roadmap.md
+│           ├── data-shape.md
+│           ├── design-tokens.md
+│           ├── design-shell.md
+│           ├── shape-section.md
+│           └── export-product.md
 └── src/                        ← your app code
 ```
 
@@ -278,10 +287,9 @@ Or use the update flag to refresh all commands at once:
 
 ## What Bridge OS does not do
 
-- Does not modify Design OS or its commands
-- Does not modify Agent OS or its existing standards
+- Does not modify Design OS or Agent OS source code
 - Does not generate application code
-- Does not replace `/export-product` or `/inject-standards`
+- Does not replace any Design OS or Agent OS commands — it orchestrates them
 
 It installs, connects, and enforces order between the two tools — nothing more.
 
