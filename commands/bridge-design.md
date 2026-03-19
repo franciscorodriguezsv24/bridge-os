@@ -1,28 +1,22 @@
 # Bridge Design
 
-Guide the user through the complete design phase. Bridge OS supports two paths
-for sourcing design tokens — choose one before starting.
+Guide the user through the complete design phase.
+
+## Step 0 — Read design source from state
+
+Read `.bridge-os/state.json` and check `design_source`.
+
+- If `"figma"` → go directly to **PATH A — Figma MCP** below
+- If `"design-os"` → go directly to **PATH B — Design OS** below
+- If `null` or missing → ask the user:
 
 ---
 
-## Step 0 — Choose your design source
+**`/bridge-init` was not run yet, or the design source was not set.
+How would you like to define your design tokens?**
 
-Ask the user:
-
----
-
-**How would you like to define your design tokens?**
-
-**A) Figma MCP** — Pull colors, typography, and spacing directly from your Figma
-file using the Figma MCP integration in Claude Code.
-- Requires Figma MCP configured in Claude Code settings
-- Tokens sync automatically from Figma variables
-- You still define product vision, roadmap, and data shape here
-
-**B) Design OS** — Use the local Design OS repo to define your design system
-interactively, with a live preview at localhost:3000.
-- Full visual workflow with token editor
-- Generates a complete design export (tokens + shell + sections)
+**A) Figma MCP** — Pull colors, typography, and spacing directly from your Figma file.
+**B) Design OS** — Full interactive design workflow with live preview.
 
 **Which path? (A or B)**
 
