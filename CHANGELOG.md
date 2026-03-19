@@ -5,6 +5,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com).
 
 ---
 
+## [0.1.5] - 2026-03-19
+
+### Added
+- **Figma MCP integration** — `/bridge-design` now offers Path A (Figma MCP) or Path B (Design OS) at the start
+- `scripts/generate-figma-standard.js` — reads `.bridge-os/figma-tokens.json` and generates `agent-os/standards/design-system.md` from Figma variables
+- `scripts/sync.sh --figma` flag — bypasses Design OS phase lock, reads Figma tokens, routes to `generate-figma-standard.js`
+- Figma MCP setup guide in `/bridge-design` (Path A): detects if MCP is available, walks through token creation and `~/.claude/settings.json` config if not
+- Figma MCP setup step in `/bridge-init` (Step 7): ask user which path, configure MCP inline if they choose Figma
+- `state.json` now tracks `design_source` (`"figma"` | `"design-os"`) and `figma_file_key`
+- `/bridge-sync` routes automatically based on `state.json.design_source`
+
+### Changed
+- `commands/bridge-design.md`: complete rewrite — Step 0 chooses source, Path A is Figma MCP flow, Path B is original Design OS flow
+- `commands/bridge-sync.md`: split into Path A (Figma sync) and Path B (Design OS sync) with routing logic
+- `commands/bridge-init.md`: added Step 7 for optional Figma MCP setup before first `/bridge-design`
+- `setup/project.sh`: copies `generate-figma-standard.js` alongside `generate-standard.js`
+- `template/state.json.tpl`: added `design_source` and `figma_file_key` fields
+- `README.md`: updated to v0.1.5 — documents both design paths, Figma MCP setup, new project structure
+
+---
+
 ## [0.1.4] - 2026-03-10
 
 ### Added

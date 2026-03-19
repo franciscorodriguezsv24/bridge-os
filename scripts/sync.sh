@@ -1,8 +1,8 @@
 #!/bin/bash
 # =============================================================================
 # Bridge OS — sync.sh
-# Connects Design OS export to Agent OS standards and product context.
-# Usage: .bridge-os/sync.sh [--tokens-only] [--dry-run] [--section <name>]
+# Connects Design OS export (or Figma tokens) to Agent OS standards.
+# Usage: .bridge-os/sync.sh [--figma] [--tokens-only] [--dry-run] [--section <name>]
 # =============================================================================
 
 set -e
@@ -18,12 +18,14 @@ RESET='\033[0m'
 # ── Flags ─────────────────────────────────────────────────────────────────────
 DRY_RUN=false
 TOKENS_ONLY=false
+FIGMA=false
 SECTION=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --dry-run)      DRY_RUN=true; shift ;;
     --tokens-only)  TOKENS_ONLY=true; shift ;;
+    --figma)        FIGMA=true; shift ;;
     --section)      SECTION="$2"; shift 2 ;;
     *)              shift ;;
   esac
@@ -62,6 +64,84 @@ echo -e "${BOLD}🌉 Bridge OS — Sync${RESET}"
 echo -e "────────────────────────────────"
 [ "$DRY_RUN" = true ] && echo -e "${YELLOW}[DRY RUN] No files will be written${RESET}\n"
 
+# ══════════════════════════════════════════════════════════════════════════════
+# PATH A — FIGMA MCP SYNC
+# ══════════════════════════════════════════════════════════════════════════════
+if [ "$FIGMA" = true ]; then
+  echo -e "${CYAN}→ Figma MCP sync mode${RESET}"
+  echo ""
+
+  FIGMA_TOKENS=".bridge-os/figma-tokens.json"
+
+  # Verify figma-tokens.json exists
+  if [ ! -f "$FIGMA_TOKENS" ]; then
+    echo -e "${RED}${BOLD}✗ Figma tokens not found at $FIGMA_TOKENS${RESET}"
+    echo ""
+    echo -e "   Run ${BOLD}/bridge-design${RESET} → Path A (Figma MCP) to pull your tokens first."
+    echo ""
+    exit 1
+  fi
+
+  echo -e "${GREEN}✓ Figma tokens found${RESET}"
+  echo ""
+
+  # 1. Generate design-system.md from Figma tokens
+  echo -e "${CYAN}→ Generating design-system.md from Figma tokens...${RESET}"
+  if [ "$DRY_RUN" = false ]; then
+    mkdir -p "$STANDARDS_DIR"
+    node "$(dirname "$0")/generate-figma-standard.js" \
+      --tokens "$FIGMA_TOKENS" \
+      --output "$STANDARDS_DIR/design-system.md"
+    echo -e "   ${GREEN}✓${RESET} $STANDARDS_DIR/design-system.md generated from Figma"
+  else
+    echo -e "   [dry-run] Would generate $STANDARDS_DIR/design-system.md from $FIGMA_TOKENS"
+  fi
+
+  # 2. Sync product docs to Agent OS product/ (if they exist)
+  if [ "$TOKENS_ONLY" = false ]; then
+    echo -e "${CYAN}→ Syncing product docs...${RESET}"
+    if [ "$DRY_RUN" = false ]; then
+      mkdir -p "$PRODUCT_DIR"
+      [ -f "agent-os/product/overview.md" ] && cp "agent-os/product/overview.md" "$PRODUCT_DIR/design-requirements.md" \
+        && echo -e "   ${GREEN}✓${RESET} $PRODUCT_DIR/design-requirements.md updated"
+      [ -f "agent-os/product/roadmap.md" ] && cp "agent-os/product/roadmap.md" "$PRODUCT_DIR/roadmap.md" \
+        && echo -e "   ${GREEN}✓${RESET} $PRODUCT_DIR/roadmap.md updated"
+    else
+      echo -e "   [dry-run] Would sync product docs to $PRODUCT_DIR/"
+    fi
+  fi
+
+  # 3. Update bridge state
+  if [ "$DRY_RUN" = false ]; then
+    TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    FIGMA_KEY=$(node -e "const t=require('./$FIGMA_TOKENS');console.log(t.fileKey||'n/a')" 2>/dev/null || echo "n/a")
+    cat > "$STATE" <<EOF
+{
+  "phase": "agent",
+  "design_source": "figma",
+  "figma_file_key": "$FIGMA_KEY",
+  "last_sync": "$TIMESTAMP",
+  "export_hash": null,
+  "section": "${SECTION:-all}",
+  "tokens_only": $TOKENS_ONLY
+}
+EOF
+  fi
+
+  echo ""
+  echo -e "${GREEN}${BOLD}✅ Figma sync complete${RESET}"
+  echo ""
+  echo -e "   Source: ${CYAN}Figma MCP${RESET} (file key: $FIGMA_KEY)"
+  echo -e "   Phase:  ${GREEN}AGENT OS enabled${RESET}"
+  echo -e "   Next:   Run ${BOLD}/bridge-build${RESET} to inject standards and shape specs"
+  echo ""
+  exit 0
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PATH B — DESIGN OS SYNC
+# ══════════════════════════════════════════════════════════════════════════════
+
 # ── PHASE LOCK: verify Design OS export exists ────────────────────────────────
 echo -e "${CYAN}→ Checking Design OS export...${RESET}"
 
@@ -72,16 +152,16 @@ if [ ! -d "$EXPORT_PATH" ]; then
   echo -e "   Expected at: ${YELLOW}$EXPORT_PATH${RESET}"
   echo ""
   echo -e "   Complete the design phase first:"
-  echo -e "   ${CYAN}1.${RESET} Open your Design OS repo"
-  echo -e "   ${CYAN}2.${RESET} Run ${BOLD}/export-product${RESET} in Claude Code"
+  echo -e "   ${CYAN}1.${RESET} Run ${BOLD}/bridge-design${RESET} and choose Path B (Design OS)"
+  echo -e "   ${CYAN}2.${RESET} Complete all steps including ${BOLD}/export-product${RESET}"
   echo -e "   ${CYAN}3.${RESET} Re-run this sync"
+  echo ""
+  echo -e "   Or if you have a Figma file, run: ${CYAN}.bridge-os/sync.sh --figma${RESET}"
   echo ""
   exit 1
 fi
 
 # ── Verify required export files ─────────────────────────────────────────────
-# Real structure produced by Design OS /export-product (product-plan/):
-#   design-system/  sections/  shell/  prompts/  product-overview.md
 REQUIRED=("design-system" "sections" "shell" "prompts" "product-overview.md")
 MISSING=()
 
@@ -157,6 +237,7 @@ if [ "$DRY_RUN" = false ]; then
   cat > "$STATE" <<EOF
 {
   "phase": "agent",
+  "design_source": "design-os",
   "last_sync": "$TIMESTAMP",
   "export_hash": "$HASH",
   "section": "${SECTION:-all}",
@@ -169,6 +250,7 @@ fi
 echo ""
 echo -e "${GREEN}${BOLD}✅ Bridge sync complete${RESET}"
 echo ""
-echo -e "   Phase: ${GREEN}AGENT OS enabled${RESET}"
-echo -e "   Next:  Run ${BOLD}/bridge-build${RESET} to inject standards and shape specs"
+echo -e "   Source: ${CYAN}Design OS${RESET}"
+echo -e "   Phase:  ${GREEN}AGENT OS enabled${RESET}"
+echo -e "   Next:   Run ${BOLD}/bridge-build${RESET} to inject standards and shape specs"
 echo ""

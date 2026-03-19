@@ -1,13 +1,16 @@
 # Bridge OS
 
-![Version](https://img.shields.io/badge/version-0.1.2-blue)
+![Version](https://img.shields.io/badge/version-0.1.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Works with Design OS](https://img.shields.io/badge/works%20with-Design%20OS-purple)
 ![Works with Agent OS](https://img.shields.io/badge/works%20with-Agent%20OS-orange)
+![Figma MCP](https://img.shields.io/badge/Figma%20MCP-supported-1abc9c)
 
 > The missing connection between Design OS and Agent OS.
 
 Bridge OS is the single entry point for AI-first product development. It installs and connects [Design OS](https://github.com/buildermethods/design-os) and [Agent OS](https://github.com/buildermethods/agent-os) — ensuring the design phase always happens before implementation begins.
+
+Now supports **Figma MCP** as an alternative design token source, alongside the full Design OS workflow.
 
 ---
 
@@ -19,9 +22,10 @@ Bridge OS fills that gap:
 
 - **One entry point** — a single `curl` installs Bridge OS, which then sets up everything else
 - **Single session** — Design OS, Bridge OS, and Agent OS commands all run from one Claude Code session
-- **Enforced order** — a phase lock prevents Agent OS from running without a completed Design OS export
-- **Automatic translation** — the Design OS export becomes a `design-system.md` standard that Agent OS reads automatically
-- **Full design guidance** — `/bridge-design` walks you through the entire design phase, detecting where you left off
+- **Two design paths** — pull tokens from Figma MCP or use the full Design OS interactive workflow
+- **Enforced order** — a phase lock prevents Agent OS from running without completed design tokens
+- **Automatic translation** — design tokens become a `design-system.md` standard that Agent OS reads automatically
+- **Full lifecycle** — `/bridge-evolve` handles adding sections, redesigning, and updating tokens post-build
 
 ---
 
@@ -31,26 +35,40 @@ Bridge OS fills that gap:
 curl ... | bash          ← install Bridge OS globally (once)
        ↓
 /bridge-init             ← install Design OS + Agent OS + configure project
+                           (optional: set up Figma MCP)
        ↓
-/bridge-design           ← guided design phase (vision → sections → export)
+/bridge-design           ← choose design source, then complete design phase
+       │
+       ├── Path A: Figma MCP  → pull tokens from Figma variables
+       └── Path B: Design OS  → full interactive design workflow
        ↓
-/bridge-sync             ← connect export to Agent OS standards
+/bridge-sync             ← connect tokens/export to Agent OS standards
        ↓
 /bridge-build            ← inject standards + shape specs per section
        ↓
-/shape-spec              ← build with confidence
+build                    ← agent builds with full design context
        ↓
 /bridge-evolve           ← add sections, redesign, or update tokens
 ```
 
 ### What happens during sync
 
+**Path A — Figma MCP:**
+```
+.bridge-os/figma-tokens.json       agent-os/standards/global/
+  colors[]                     →     design-system.md  (tokens + rules)
+  typography[]                 →
+  spacing[]                    →
+agent-os/product/overview.md   →   agent-os/product/design-requirements.md
+```
+
+**Path B — Design OS:**
 ```
 bridge-design/product-plan/        agent-os/standards/global/
-  design-system/                →    design-system.md  (tokens + components + rules)
-  sections/                     →
-  shell/                        →
-  product-overview.md           →  agent-os/product/design-requirements.md
+  design-system/               →     design-system.md  (tokens + components + rules)
+  sections/                    →
+  shell/                       →
+  product-overview.md          →   agent-os/product/design-requirements.md
 ```
 
 ---
@@ -60,6 +78,7 @@ bridge-design/product-plan/        agent-os/standards/global/
 - Node.js v18+
 - Git
 - [`yq`](https://github.com/mikefarah/yq) _(optional but recommended)_
+- Figma account _(optional — only for Path A / Figma MCP)_
 
 > Design OS and Agent OS do not need to be installed manually.
 > `/bridge-init` handles everything automatically.
@@ -97,7 +116,7 @@ claude
 ```
 
 This installs Design OS, Agent OS, and wires everything together.
-You never need to install or configure either tool manually.
+Optionally configures Figma MCP if you choose Path A.
 
 ---
 
@@ -105,9 +124,9 @@ You never need to install or configure either tool manually.
 
 | Command | Phase | What it does |
 |---------|-------|-------------|
-| `/bridge-init` | Setup | Installs Design OS + Agent OS + configures the project in one step |
-| `/bridge-design` | Design | Guides the full design phase — detects progress and continues from where you left off |
-| `/bridge-sync` | Bridge | Connects the Design OS export to Agent OS standards |
+| `/bridge-init` | Setup | Installs Design OS + Agent OS + configures the project. Optional Figma MCP setup. |
+| `/bridge-design` | Design | Choose Figma MCP or Design OS, then complete the full design phase |
+| `/bridge-sync` | Bridge | Syncs tokens/export to Agent OS standards (routes by design source) |
 | `/bridge-build` | Build | Injects standards and shapes a spec for each roadmap section |
 | `/bridge-evolve` | Evolve | Add sections, redesign, or update tokens after initial build |
 | `/bridge-status` | Any | Shows current phase and verifies all checks |
@@ -122,11 +141,40 @@ All Bridge OS and Agent OS commands are installed automatically into
 ### Full flow — new project
 
 ```
-/bridge-init      ← installs Design OS + Agent OS
-/bridge-design    ← vision → sections → export (guided)
-/bridge-sync      ← connects export to Agent OS
+/bridge-init      ← installs everything (+ optional Figma MCP setup)
+/bridge-design    ← choose Path A (Figma) or Path B (Design OS)
+/bridge-sync      ← connects tokens to Agent OS standards
 /bridge-build     ← injects standards + shapes specs per section
-/shape-spec       ← start building
+                  ← build
+```
+
+### Figma MCP path (Path A)
+
+If you already have your design in Figma and want to use tokens directly:
+
+```
+/bridge-design    ← choose "A) Figma MCP"
+                  ← Bridge OS detects MCP availability
+                  ← if not configured: guides you through token + settings setup
+                  ← pulls variables from Figma → figma-tokens.json
+                  ← guides product vision + roadmap by conversation
+/bridge-sync      ← sync.sh --figma → generates design-system.md
+/bridge-build     ← shapes specs using Figma token standards
+```
+
+Re-syncing after Figma token updates:
+```bash
+.bridge-os/sync.sh --figma              # full re-sync
+.bridge-os/sync.sh --figma --tokens-only # tokens only
+```
+
+### Design OS path (Path B)
+
+```
+/bridge-design    ← choose "B) Design OS"
+                  ← vision → roadmap → tokens → shell → sections → export
+/bridge-sync      ← connects Design OS export to Agent OS
+/bridge-build     ← shapes specs using exported components + tokens
 ```
 
 ### Adding sections or updating the design post-build
@@ -135,23 +183,7 @@ All Bridge OS and Agent OS commands are installed automatically into
 /bridge-evolve    ← add sections, redesign, update tokens, or update data shape
 ```
 
-This command handles the full cycle: design change → re-export → sync → new spec.
-
-### Re-syncing after a design change
-
-If you updated the design and ran `/export-product` again:
-
-```
-/bridge-sync
-```
-
-Or from the terminal:
-
-```bash
-.bridge-os/sync.sh
-```
-
-### Partial syncs
+### Partial syncs (Design OS path)
 
 ```bash
 .bridge-os/sync.sh --tokens-only      # only tokens changed
@@ -175,7 +207,7 @@ After setup, your project will look like this:
 
 ```
 your-project/
-├── bridge-design/              ← Design OS repo (git-ignored)
+├── bridge-design/              ← Design OS repo (git-ignored, Path B only)
 │   └── product-plan/           ← generated by /export-product
 │       ├── design-system/      ← tokens.css, tailwind-colors.css, fonts.md
 │       ├── sections/           ← section components
@@ -186,13 +218,16 @@ your-project/
 │   ├── standards/global/
 │   │   └── design-system.md   ← generated by Bridge OS sync
 │   └── product/
-│       └── design-requirements.md
-├── design-export/              ← copy of Design OS export (git-ignored)
+│       ├── design-requirements.md
+│       └── roadmap.md
+├── design-export/              ← copy of Design OS export (git-ignored, Path B)
 ├── .bridge-os/                 ← Bridge OS config and scripts
 │   ├── config.yml              ← local config (git-ignored)
-│   ├── state.json              ← current phase (git-ignored)
+│   ├── state.json              ← current phase + design_source (git-ignored)
+│   ├── figma-tokens.json       ← Figma variables cache (git-ignored, Path A)
 │   ├── sync.sh
-│   └── generate-standard.js
+│   ├── generate-standard.js
+│   └── generate-figma-standard.js
 ├── .claude/
 │   └── commands/
 │       ├── bridge-init.md
@@ -215,6 +250,35 @@ your-project/
 ---
 
 ## Troubleshooting
+
+### Figma MCP not responding
+
+If Bridge OS reports Figma MCP is not available:
+
+1. Verify `~/.claude/settings.json` contains the Figma MCP config:
+
+```json
+{
+  "mcpServers": {
+    "Figma": {
+      "command": "npx",
+      "args": ["--yes", "figma-developer/mcp", "--stdio"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "figd_xxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+2. Check your token at [figma.com](https://www.figma.com) → Settings → Security → Personal access tokens
+   - Token must have **File content (Read)** scope
+
+3. Restart Claude Code completely: `Cmd+Q` → reopen terminal → `claude`
+
+Run `/bridge-design` again — Bridge OS will guide the full setup if MCP is still missing.
+
+---
 
 ### `bash: line 1: 404:: command not found` when installing Agent OS
 
@@ -241,20 +305,13 @@ chmod +x ~/.bridge-os/scripts/sync.sh
 
 Then re-run `~/.bridge-os/setup/project.sh`.
 
-To avoid this in the future, re-run the global installer which now
-sets permissions automatically:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/franciscorodriguezsv24/bridge-os/main/setup/install.sh | bash
-```
-
 ---
 
 ### `🚫 PHASE LOCK: Design OS export not found`
 
-Bridge OS cannot find the Design OS export. Check two things:
+Bridge OS cannot find the Design OS export. This only applies to Path B (Design OS).
 
-1. Verify `export_dir` in `.bridge-os/config.yml` — it should be `product-plan` for current versions of Design OS
+1. Verify `export_dir` in `.bridge-os/config.yml` — it should be `product-plan`
 2. Make sure you ran `/export-product` in Design OS before syncing
 
 ```yaml
@@ -262,6 +319,8 @@ design_os:
   path: "./bridge-design"
   export_dir: "product-plan"   # ← not "export"
 ```
+
+If using Path A (Figma MCP), run `.bridge-os/sync.sh --figma` instead.
 
 ---
 
@@ -276,20 +335,10 @@ Re-run `/export-product` in Design OS to regenerate the full package.
 
 Bridge OS could not read the token files. Verify that
 `design-export/design-system/tokens.css` exists and is not empty.
-If Design OS generated a different file name, check `design-export/design-system/`
-and update `generate-standard.js` accordingly.
 
 ---
 
 ### `/bridge-status` shows old checks after update
-
-The Claude Code command file is cached. Copy the updated version:
-
-```bash
-cp ~/.bridge-os/commands/bridge-status.md .claude/commands/bridge-status.md
-```
-
-Or use the update flag to refresh all commands at once:
 
 ```bash
 ~/.bridge-os/setup/project.sh --update
@@ -302,6 +351,7 @@ Or use the update flag to refresh all commands at once:
 - Does not modify Design OS or Agent OS source code
 - Does not generate application code
 - Does not replace any Design OS or Agent OS commands — it orchestrates them
+- Does not require Figma — Design OS path works fully offline
 
 It installs, connects, and enforces order between the two tools — nothing more.
 

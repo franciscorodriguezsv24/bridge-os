@@ -73,7 +73,62 @@ This is the first command to run in any new project.
    - `./.claude/commands/design-os/product-vision.md` exists
    - `./.claude/commands/design-os/export-product.md` exists
 
-7. Report result:
+7. Ask the user about their design source:
+
+"**How do you plan to define your design tokens?**
+
+**A) Figma MCP** — Pull tokens directly from a Figma file (requires Figma access token)
+**B) Design OS** — Define tokens interactively with a local live preview
+
+Which path? (A or B — you can also decide later when running `/bridge-design`)"
+
+If the user chooses **A (Figma MCP)**, run the Figma MCP setup:
+
+---
+
+#### 🔧 Figma MCP Setup (optional — only if Path A chosen)
+
+**Step 1 — Get a Figma Personal Access Token**
+
+Tell the user:
+1. Go to [figma.com](https://www.figma.com) → profile icon → **Settings**
+2. Scroll to **Security** → **Personal access tokens**
+3. Click **Generate new token**
+   - Name: `Bridge OS`
+   - Scopes: enable **File content** (Read)
+4. Copy the token — it starts with `figd_`
+
+Ask: "Paste your Figma token here:"
+
+**Step 2 — Add Figma MCP to Claude Code settings**
+
+Check if `~/.claude/settings.json` exists. Read it.
+
+Add under `mcpServers` (create the key if it doesn't exist):
+
+```json
+"Figma": {
+  "command": "npx",
+  "args": ["--yes", "figma-developer/mcp", "--stdio"],
+  "env": {
+    "FIGMA_ACCESS_TOKEN": "<user-token>"
+  }
+}
+```
+
+Write the updated settings file.
+
+Tell the user:
+"Figma MCP configured ✅. Restart Claude Code now to activate it:
+1. Press **Cmd+Q** or close the window
+2. Reopen: `claude` in the terminal
+3. Run `/bridge-design` to start the design phase"
+
+**If the user chooses B or skips** → continue directly to step 8.
+
+---
+
+8. Report result:
 
 ---
 
@@ -84,13 +139,14 @@ This is the first command to run in any new project.
 | Design OS | ✅ Installed at `./bridge-design/` |
 | Agent OS | ✅ Installed at `./agent-os/` |
 | Bridge OS | ✅ Configured at `./.bridge-os/` |
+| Figma MCP | ✅ Configured / ⏭️ Skipped (Path B) |
 
 **Current phase:** `DESIGN`
 
 **Next step:**
-Run `/bridge-design` to start the design process in Design OS.
+Run `/bridge-design` to start the design process.
 
 ---
 
-8. Do not proceed to design or implementation automatically.
+9. Do not proceed to design or implementation automatically.
    Wait for the user to run `/bridge-design`.

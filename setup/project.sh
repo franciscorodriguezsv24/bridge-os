@@ -84,8 +84,9 @@ mkdir -p "$PROJECT_DIR/.bridge-os"
 # Copy scripts (always overwrite in update mode)
 cp "$BRIDGE_OS_HOME/scripts/sync.sh" "$PROJECT_DIR/.bridge-os/sync.sh"
 cp "$BRIDGE_OS_HOME/scripts/generate-standard.js" "$PROJECT_DIR/.bridge-os/generate-standard.js"
+cp "$BRIDGE_OS_HOME/scripts/generate-figma-standard.js" "$PROJECT_DIR/.bridge-os/generate-figma-standard.js"
 chmod +x "$PROJECT_DIR/.bridge-os/sync.sh"
-echo -e "  ${GREEN}✓${RESET} sync.sh and generate-standard.js copied"
+echo -e "  ${GREEN}✓${RESET} sync.sh, generate-standard.js and generate-figma-standard.js copied"
 
 # ── Write config.yml ──────────────────────────────────────────────────────────
 CONFIG="$PROJECT_DIR/.bridge-os/config.yml"
@@ -122,8 +123,10 @@ if [ ! -f "$STATE" ]; then
   cat > "$STATE" <<EOF
 {
   "phase": "design",
+  "design_source": null,
   "last_sync": null,
   "export_hash": null,
+  "figma_file_key": null,
   "section": null,
   "tokens_only": false
 }
