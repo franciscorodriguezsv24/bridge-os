@@ -1,5 +1,9 @@
 # Bridge OS
 
+<p align="center">
+  <img src="bridge-os-logo.png" alt="Bridge OS" width="480" />
+</p>
+
 ![Version](https://img.shields.io/badge/version-0.1.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Works with Design OS](https://img.shields.io/badge/works%20with-Design%20OS-purple)
